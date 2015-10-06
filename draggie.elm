@@ -11,11 +11,51 @@ import Color exposing (..)
 
 -- some code taken from / inspired by : https://github.com/jvoigtlaender/elm-drag-and-drop/blob/master/DragAndDrop.elm
 
+type alias Model = {nextID: ID
+                   , boxes: List (Draggable)
+                   }
 
-hover = Signal.mailbox False
+type alias Draggable = {id : ID
+                       , text: String
+                       }
 
-box = Graphics.Input.hoverable (Signal.message hover.address) (putInBox (leftAligned (fromString "LOL")))
+type alias ID = Int
 
+box = makeHoverable (makeBox "WHADDUP")
+
+boxStrings = ["LOL", "HAHA", "WHAT"]
+
+makeBox : String -> Element
+makeBox s = putInBox (leftAligned (fromString s))
+
+
+initModel = makeModel boxStrings
+
+
+
+hover = Signal.mailbox Nothing
+
+-- what I need.
+-- I need to hold on to a list of the elements. I guess? and I need to map make hoverable over them. I need just one mailbox.
+
+makeModel : List (String) -> Model
+makeModel boxStringList = List.foldr (\el  model -> 
+              {model | nextID <- model.nextID + 1
+              , boxes <- model.boxes ++ [{id = model.nextID, text = el}]
+              })
+              {nextID = 0, boxes = []}
+              boxStringList
+
+makeHoverableBoxes : Model -> List (Element)
+makeHoverableBoxes model = 
+  List.map (\el -> makeHoverable (makeBox el.text) el.id) model.boxes
+
+
+
+makeHoverable : Element -> ID -> Element
+makeHoverable e id = Graphics.Input.hoverable (Signal.message hover.address << \h -> if h then Just id else Nothing) e
+
+putInBox : Element -> Element
 putInBox e =
   let (sx, sy) = sizeOf e
   in layers [e, collage sx sy [outlined (solid black) (rect (toFloat sx) (toFloat sy))]]

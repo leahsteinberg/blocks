@@ -12,28 +12,32 @@ import Color exposing (..)
 
 -- some code taken from / inspired by : https://github.com/jvoigtlaender/elm-drag-and-drop/blob/master/DragAndDrop.elm
 
+
+-- MODEL
+
 type alias Model = {nextID: ID
                    , boxes: List (Draggable)
                    }
 
 type alias Draggable = {id : ID
-                       , text: String
                        , pos : (Float, Float)
                        , boxElement : Element
                        }
 
 type alias ID = Int
 
-box = makeHoverable (makeBox  "WHADDUP") 1
 
 boxStrings = ["LOL", "HAHA", "WHAT", "OMG"]
+boxElements = List.map makeBox boxStrings
 
 hover = Signal.mailbox Nothing
 makeBox : String -> Element
 makeBox s = putInBox (leftAligned (fromString s))
 
 initModel : Model
-initModel = makeModel boxStrings
+initModel = makeDraggables boxElements
+
+
 
 -- what I need.
 -- I need to hold on to a list of the elements. I guess? and I need to map make hoverable over them. I need just one mailbox.
@@ -42,19 +46,17 @@ initModel = makeModel boxStrings
 --makeModel boxStringList = makeHoverableBoxes (makeEmptyModelFromStrings boxStringList)
 
 
-makeModel : List (String) -> Model
-makeModel boxStringList=
-    let makeHoverableElement text id = makeHoverable (makeBox text) id
-    in
-        List.foldr (\el  model ->
+makeDraggables : List (Element) -> Model
+makeDraggables boxElementList=
+    List.foldr (\el  model ->
               {model | nextID <- model.nextID + 1
               , boxes <- model.boxes ++ [{id = model.nextID 
-                                          , text = el
+                                          --, text = el
                                           , pos = (toFloat ((model.nextID) * 75) , toFloat ((model.nextID) * 75))
-                                          , boxElement = makeHoverableElement el model.nextID}]
+                                          , boxElement = makeHoverable el model.nextID}]--makeHoverableElement el model.nextID}]
               })
               {nextID = 0, boxes = []}
-              boxStringList
+              boxElementList
 
 --makeHoverableBoxes : Model -> Model
 --makeHoverableBoxes model =
@@ -68,7 +70,7 @@ makeHoverable e id = Graphics.Input.hoverable (Signal.message hover.address << \
 putInBox : Element -> Element
 putInBox e =
   let (sx, sy) = sizeOf e
-  in layers [e, collage sx sy [outlined (solid black) (rect (toFloat sx) (toFloat sy))]]
+  in layers [e, collage sx sy [outlined (solid red) (rect (toFloat sx) (toFloat sy))]]
 
 moveBy (dx, dy) (x, y) = (x + toFloat dx, y - toFloat dy)
 
@@ -101,7 +103,7 @@ main =
   let 
       moveBox m id (dx, dy) = {m | boxes <- 
                                   (List.foldr 
-                                  (\b boxes -> if b.id == id then boxes ++ [{b | pos <- moveBy (dx, dy) b.pos}] else boxes ++ [b])  
+                                  (\b boxes -> if b.id == id then {b | pos <- moveBy (dx, dy) b.pos} :: boxes else b :: boxes)  
                                                   []
                                                   m.boxes)}
       update drag m =
@@ -111,7 +113,8 @@ main =
   in
      Signal.map 
         (\model -> collage 700 700 
-        (List.map (\box -> (Graphics.Collage.move box.pos (toForm box.boxElement))) model.boxes)) (foldp update initModel dragSignal)
+        (List.map (\box -> (Graphics.Collage.move box.pos (toForm box.boxElement))) model.boxes)) 
+        (foldp update initModel (Debug.watch "dragsignal" <~ dragSignal)) 
 
 type MouseEvent = StartAt (Int, Int) | MoveFromTo (Int, Int) (Int, Int) | EndAt (Int, Int) | NoEvent
 outNoEvent : MouseEvent -> Bool
@@ -132,4 +135,3 @@ mouseEvents =
      filter outNoEvent (EndAt (0, 0)) (foldp makeMouseEvent (EndAt (0, 0)) (Signal.map2 (,) Mouse.isDown Mouse.position))
 
 
---main = show "hiiiii"

@@ -1,6 +1,8 @@
 import Draggable exposing (..)
+import Debug
+import Signal exposing (..)
 import Graphics.Collage exposing (collage, toForm, move, rect, filled, alpha, Form, group, text)
-import Graphics.Input exposing (button, clickable)
+import Graphics.Input exposing (button, clickable, customButton)
 import Text exposing (fromString)
 import Color exposing (lightRed, lightPurple, Color)
 import Graphics.Element exposing (..)
@@ -16,10 +18,7 @@ boxTransform : Signal.Mailbox BoxTransform
 boxTransform = Signal.mailbox None
 
 
-addButton = 
-   (button (Signal.message boxTransform.address (Add "heyyyy")) "add")
-   |> toForm
-   |> move (-300, 300)
+
 
 processMetaAction : (Maybe Action -> Model -> Model) -> (BoxTransform -> Model -> Model) -> MetaAction -> Model -> Model
 processMetaAction fAction fBox ma m =
@@ -31,7 +30,7 @@ processMetaAction fAction fBox ma m =
 
 
 --toAction : MetaAction -> Action
---toAction ma = 
+--toAction ma =
 --  case ma of
 --    AnAction a -> a
 --    _ -> Nothing
@@ -43,7 +42,7 @@ updateBoxTransform bt m =
     Add str -> addBox m (makeBox str)
     None -> m
 
-  
+
 
 fromAction : Action -> MetaAction
 fromAction a = AnAction a
@@ -64,24 +63,43 @@ makeClickable ma form = clickable (Signal.message boxTransform.address ma) form
 
 makeBlockButton : (String, Color,  Int) -> Form
 makeBlockButton (str, col, i) =
-  let 
+  let
       clickableText = makeClickable (Add str) (centered (fromString str))
   in
       [blockButtonBackground col, toForm clickableText]
       |> group
       |> move (-300, 300 /10 * (toFloat i))
 
-blockMenu = List.map makeBlockButton [("map", lightRed, 1), ("filter", lightPurple, 2)]
+blockMenu = List.map makeBlockButtonCustom [("filter", lightPurple, 2), ("map", lightRed, 1)]
 
 
-main = 
+makeBlockButtonCustom  : (String, Color, Int) -> Form
+makeBlockButtonCustom (str, col, i) =
+  let 
+      buttonBackground = (color col (centered (fromString str)))
+  in
+      customButton (Signal.message boxTransform.address (Add str))
+          buttonBackground buttonBackground buttonBackground
+            |> toForm
+            |> move (-300, 300 / 10 * (toFloat i))
+
+
+
+addButton =
+   (button (Signal.message boxTransform.address (Add "heyyyy")) "add")
+   |> toForm
+   |> move (-300, 300)
+
+
+main =
   let
-      combiner = processMetaAction updateDrag updateBoxTransform 
+      combiner = processMetaAction updateDrag updateBoxTransform
       draggables = makeDraggables (List.map makeBox ["hi", "there", "uhhhh"])
       metaBoxTransform = Signal.map fromBoxTransform boxTransform.signal
-      metaDrag = Signal.map fromAction dragSignal
+      metaDrag = Signal.map fromAction (Debug.watch "drag sig" <~ dragSignal)
+        --(Debug.watch "meta signal" <~ (
       metaSignal = Signal.merge metaDrag metaBoxTransform
       view model = collage 700 700  ((drawBoxes model) ++ blockMenu)
-      modelSignal = Signal.foldp combiner draggables metaSignal
+      modelSignal = Signal.foldp combiner draggables (Debug.watch "meta sig" <~ metaSignal)
   in
       Signal.map view modelSignal

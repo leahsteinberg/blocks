@@ -1,6 +1,11 @@
 import Draggable exposing (..)
-import Graphics.Collage exposing (collage, toForm, move)
-import Graphics.Input exposing (button)
+import Graphics.Collage exposing (collage, toForm, move, rect, filled, alpha, Form, group, text)
+import Graphics.Input exposing (button, clickable)
+import Text exposing (fromString)
+import Color exposing (lightRed, lightPurple, Color)
+import Graphics.Element exposing (..)
+
+--import BlockMenu exposing (..)
 
 type MetaAction = AnAction Action | AnBox BoxTransform
 
@@ -47,8 +52,26 @@ fromBoxTransform : BoxTransform -> MetaAction
 fromBoxTransform bt = AnBox bt
 
 
+blockButtonBackground : Color -> Form
+blockButtonBackground col =
+  rect 60 30
+    |> filled col
+    |> alpha 0.1
 
---boxTransform.signal
+
+makeClickable : BoxTransform -> Element -> Element
+makeClickable ma form = clickable (Signal.message boxTransform.address ma) form
+
+makeBlockButton : (String, Color,  Int) -> Form
+makeBlockButton (str, col, i) =
+  let 
+      clickableText = makeClickable (Add str) (centered (fromString str))
+  in
+      [blockButtonBackground col, toForm clickableText]
+      |> group
+      |> move (-300, 300 /10 * (toFloat i))
+
+blockMenu = List.map makeBlockButton [("map", lightRed, 1), ("filter", lightPurple, 2)]
 
 
 main = 
@@ -58,7 +81,7 @@ main =
       metaBoxTransform = Signal.map fromBoxTransform boxTransform.signal
       metaDrag = Signal.map fromAction dragSignal
       metaSignal = Signal.merge metaDrag metaBoxTransform
-      view model = collage 700 700  (addButton :: (drawBoxes model))
+      view model = collage 700 700  ((drawBoxes model) ++ blockMenu)
       modelSignal = Signal.foldp combiner draggables metaSignal
   in
       Signal.map view modelSignal

@@ -43,8 +43,10 @@ boxStrings = ["LOL", "HAHA", "WHAT", "OMG"]
 boxElements = List.map makeBox boxStrings
 
 makeBox : String -> Element
-makeBox s = putInBox (leftAligned (fromString s))
+makeBox s = putInBox (centered (fromString s))
 
+makeBoxForm : String -> Form
+makeBoxForm s = text (fromString s)
 
 -- deal with boxes and hovering
 hover = Signal.mailbox Nothing
@@ -55,7 +57,7 @@ makeHoverable e id = Graphics.Input.hoverable (Signal.message hover.address << \
 putInBox : Element -> Element
 putInBox e =
   let (sx, sy) = sizeOf e
-  in layers [e, collage sx sy [outlined (solid red) (rect (toFloat sx) (toFloat sy))]]
+  in layers [e, collage sx sy [outlined (solid red)(rect (toFloat sx) (toFloat sy))]]
 
 
 initModel : Model

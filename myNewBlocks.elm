@@ -32,14 +32,20 @@ dummyModel =
             , blocks = [H filter ]
             }
 
-
-main = collage 700 700 (viewRocks (Just [
+dummyRockList : List Rock
+dummyRockList = [
   {value= 0, solid= True, color = red}
   , {value = 1, solid = False, color = blue}
   , {value = 2, solid = False, color = green}
   , {value = 4, solid = False, color = red}
-  , {value = 5, solid = True, color = green}
-  , {value = 6, solid = True, color = blue}]))
+  , {value = 5, solid = False, color = green}
+  , {value = 6, solid = True, color = blue}
+  , {value = 7, solid = False, color = red}
+  , {value = 8, solid = False, color = green}
+  , {value = 9, solid = True, color = red}]
+
+
+main = collage 700 700 (viewRocks (Just {pos= (-300, 300), rockList= dummyRockList} ))
 
 --main = view dummyModel
 
@@ -70,14 +76,19 @@ viewFunc mFun =
         T transform -> [transform.block.form]
     _ -> []
 
-viewRocks : Maybe RockList -> List Form
+viewRocks : Maybe Rocks -> List Form
 viewRocks mRocks =
   let newRock rock i = viewRock rock
-                        |> moveX (i * 13.0)
+                        |> moveX (i * 40)
+      floatPos pos = (toFloat (fst pos), toFloat (snd pos))
       addRock rock (rList, i) = ((newRock rock i) :: rList, i + 1)
+      rocksForm rocks = [(List.foldl addRock ([], 0) rocks.rockList)
+                              |> fst
+                              |> group
+                              |> move (floatPos rocks.pos)]
   in
       case mRocks of
-          Just rocks -> fst (List.foldl addRock ([], 0) rocks)
+          Just rocks -> rocksForm rocks
           _ -> []
 
 viewRock : Rock -> Form
@@ -90,10 +101,10 @@ viewRock rock =
 
 rockShape : Rock -> Shape
 rockShape rock =
-  if| rock.value == 0 -> circle 9.0
-    | rock.value == 1 -> rect 3.0 16.0
+  if| rock.value == 0 -> circle 13.0
+    | rock.value == 1 -> rect 3.0 29.0
     | rock.value == 2 -> ngon 3 20
-    | otherwise -> ngon rock.value 30
+    | otherwise -> ngon rock.value 15.0--((toFloat rock.value) * 1.0)
 
 
 

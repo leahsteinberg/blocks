@@ -8,10 +8,10 @@ import Graphics.Collage exposing (Form)
 type alias Model = {nextID: ID, blocks: List (Exp)}
 
 type Exp =  H HOF 
-            | L RockList 
+            | R Rocks 
             | F Func
-type HOF =  Filter Block (Maybe Func) (Maybe RockList) 
-            | Map Block (Maybe Func) (Maybe RockList)
+type HOF =  Filter Block (Maybe Func) (Maybe Rocks) 
+            | Map Block (Maybe Func) (Maybe Rocks)
 
 type Func = P Pred | T Transform
 
@@ -20,12 +20,12 @@ type alias Pred = {name: String
             , block: Block}
 
 type alias Transform = {name: String
-                , func: (Rock -> Rock )
+                , func: (Rock -> Rock)
                 , block: Block}
 
 type alias Block = {id: ID, form: Form, selected: Bool, pos: (Int, Int)}
 
-type alias RockList = List Rock
+type alias Rocks = {pos: (Int, Int), rockList: List Rock}
 
 type alias Rock = {value: Int
             , solid: Bool

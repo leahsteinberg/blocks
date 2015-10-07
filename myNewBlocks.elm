@@ -21,19 +21,20 @@ formHOF id str col (x, y) =
         |> toForm
         |> move (toFloat x, toFloat y)
 
-emptyPredForm : (Int, Int) -> Form
-emptyPredForm pos =
+emptyFuncForm : (Int, Int) -> List Form
+emptyFuncForm pos =
   let (fx, fy) = floatPos pos
   in
-      leftAligned (fromString "pred")
+      [leftAligned (fromString "function")
         |> color red
         |> size 40 15
-        |> move (fx + 30, fy)
+        |> toForm
+        |> move (fx + 30, fy)]
 
 dummyModel : Model
 dummyModel =
   let
-      filter = (H (Filter {id= 1, form = formHOF 1 "filter" rgbLightRed (10, 10), selected= False, pos= (10, 10)} Nothing Nothing))
+      filter = (H (Filter {id= 1, form = formHOF 1 "filter" rgbLightRed (10, 10), selected = False, pos = (10, 10)} Nothing Nothing))
   in
       {nextID = 2
             , blocks = [filter ]
@@ -76,25 +77,28 @@ traverseExp exp =
 
 traverseHOF : HOF -> List Form
 traverseHOF hof =
-  let maybePredForm mPred block = 
-      case mPred of
-        Just pred -> viewFunc pred
-        _ -> emptyPredForm block.pos
+  let maybeFuncForm maybeFunc pos = 
+      case maybeFunc of
+        Just func -> viewFunc func
+        _ -> emptyFuncForm pos 
   in
       case hof of
-        Filter block mPred mRocks -> block.form :: maybePredForm mPred block.pos ++ viewRocks mRocks
-        Map block mTransform mRocks -> block.form :: viewFunc mTransform ++ viewRocks mRocks
+        Filter block mPred mRocks -> 
+          block.form :: maybeFuncForm mPred block.pos ++ viewRocks mRocks
+        Map block mTransform mRocks -> 
+          block.form :: maybeFuncForm mTransform block.pos ++ viewRocks mRocks
 
 
-viewHOF : Block -> Form
-viewHOF block = move (floatPos block.pos) block.form
+viewHOF : Block -> List Form
+viewHOF block = [move (floatPos block.pos) block.form]
 
 viewFunc : Func -> List Form
 viewFunc fun =
-  case fun of
-    P pred -> [pred.block.form]
-    T transform -> [transform.block.form]
-
+  let display block = [move (floatPos block.pos) block.form]
+  in
+      case fun of
+        P pred -> display pred.block
+        T transform -> display transform.block
 
 viewRocks : Maybe Rocks -> List Form
 viewRocks mRocks =

@@ -55,8 +55,10 @@ updateDrag : DragAction -> Model -> Model
 updateDrag action model = model
 
 updateBlock : BlockAction -> Model -> Model
-updateBlock action model = model
-    --case action of
+updateBlock action model =
+    case action of
+        Add exp -> {model | blocks <- exp :: model.blocks}
+        _ -> model
 
 
 -- - - - - - - - -  A D D - B L O C K  - - - - - - - - -

@@ -40,6 +40,9 @@ dummyModel =
         , blocks = [filter, map]
         }
 
+
+dummyModel2 = {nextID = 1, blocks = []}
+
 dummyRockList : List Rock
 dummyRockList = [
   {value= 0, solid= True, color = red}
@@ -74,7 +77,7 @@ view m =
 main = Signal.map view foldModel
 
 foldModel : Signal Model 
-foldModel = Signal.foldp signalRouter dummyModel allUpdateSignals
+foldModel = Signal.foldp signalRouter dummyModel2 allUpdateSignals
 
 
 

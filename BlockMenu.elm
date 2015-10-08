@@ -35,18 +35,18 @@ makeBlockButtonCustom exp str col i =
 emptyFilterExp : String -> Color -> ID -> Exp
 emptyFilterExp str col id = H (Filter {
                                 id = id
-                                , form = formHOF id str col (0,0)
+                                , form = formHOF id str col (-200, 100)
                                 , selected = False
-                                , pos = (0, 0) }
+                                , pos = (-200, 100) }
                                 Nothing Nothing
                                 )
 
 emptyMapExp : String -> Color -> ID -> Exp
 emptyMapExp str col id = H (Map {
                                 id = id
-                                , form = formHOF id str col (0,0)
+                                , form = formHOF id str col (-100, 0)
                                 , selected = False
-                                , pos = (0, 0) }
+                                , pos = (-100, 0) }
                                 Nothing Nothing
                                 )
 

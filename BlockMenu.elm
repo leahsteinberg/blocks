@@ -1,35 +1,65 @@
 module BlockMenu where
-import Draggable exposing (..)
 
 import Graphics.Element exposing (..)
 import Text exposing (fromString)
 import Graphics.Collage exposing (..)
 import Color exposing (..)
+import Graphics.Input exposing (customButton)
 import Signal exposing (message)
 
+import Model exposing (..)
+--import Draggable exposing (..)
+import View exposing (formHOF)
+import Constants exposing (..)
+import SignalProcessing exposing (..)
 
+menuBackground : Form
 menuBackground = rect 100 600
                 |> filled yellow
                 |> move (-300, 0)
 
 
 
-makeBlockButtonCustom  : (String, Color, Int) -> Form
-makeBlockButtonCustom (str, col, i) =
+makeBlockButtonCustom  : Exp -> String -> Color -> ID -> Form
+makeBlockButtonCustom exp str col i =
   let 
       buttonBackground = (color col (centered (fromString str)))
   in
-      customButton (Signal.message boxTransform.address (Add str))
+      customButton (Signal.message boxTransform.address  (Add exp))
           buttonBackground buttonBackground buttonBackground
             |> toForm
             |> move (-300, 300 / 10 * (toFloat i))
 
 
 
-mapButton = 
-    let
-        background = color
+emptyFilterExp : String -> Color -> ID -> Exp
+emptyFilterExp str col id = H (Filter {
+                                id = id
+                                , form = formHOF id str col (0,0)
+                                , selected = False
+                                , pos = (0, 0) }
+                                Nothing Nothing
+                                )
 
+emptyMapExp : String -> Color -> ID -> Exp
+emptyMapExp str col id = H (Map {
+                                id = id
+                                , form = formHOF id str col (0,0)
+                                , selected = False
+                                , pos = (0, 0) }
+                                Nothing Nothing
+                                )
+
+menuData = [(emptyFilterExp, "filter", bRed, 1), (emptyMapExp, "map", bPurple, 2)]
+
+
+makeMenuButton : (String -> Color -> ID -> Exp) -> String -> Color -> ID -> Form
+makeMenuButton expFunc str col id = 
+    makeBlockButtonCustom (expFunc str col id) str col id
+
+menuButtons : List Form
+menuButtons = List.map (\(expFunc, str, col, id) -> makeMenuButton expFunc str col id) menuData
+    
 
 
 --filterBackground : Form

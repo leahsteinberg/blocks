@@ -7,6 +7,7 @@ import Text exposing (fromString)
 import Color exposing (lightRed, lightPurple, Color, rgb)
 import Graphics.Element exposing (..)
 
+
 --import BlockMenu exposing (..)
 
 type MetaAction = AnAction Action | AnBox BoxTransform
@@ -14,8 +15,7 @@ type MetaAction = AnAction Action | AnBox BoxTransform
 type BoxTransform = Add String | None
 
 
-boxTransform : Signal.Mailbox BoxTransform
-boxTransform = Signal.mailbox None
+
 
 
 processMetaAction : (Maybe Action -> Model -> Model) -> (BoxTransform -> Model -> Model) -> MetaAction -> Model -> Model

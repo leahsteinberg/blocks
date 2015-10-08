@@ -34,7 +34,7 @@ type alias Rock = {value: Int
 
 type Action = DAction DragAction | BAction BlockAction
 
-type BlockAction = Add Block | None
+type BlockAction = Add Exp | None
 
 type DragAction = Lift | MoveBy (Int, Int, Int) | Release
 

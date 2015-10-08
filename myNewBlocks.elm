@@ -12,6 +12,8 @@ import View exposing (..)
 import Constants exposing (..)
 import Model exposing (..)
 import SignalProcessing exposing (..)
+import BlockMenu exposing (menuButtons)
+
 
 
 
@@ -68,7 +70,7 @@ helperCircles = List.map (\ p -> (move  p (filled green(circle 5.0)))) [(0.0, 0.
 
 view : Model -> Element
 view m =
-  collage 700 700 (flattenForest m.blocks)
+  collage 700 700 ((flattenForest m.blocks) ++ menuButtons)
 
 
 

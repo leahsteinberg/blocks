@@ -1,5 +1,6 @@
 module Model where
 
+
 import Color exposing (Color)
 import Maybe exposing (Maybe)
 import Graphics.Element exposing (Element)

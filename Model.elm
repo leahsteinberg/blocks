@@ -37,6 +37,8 @@ type BlockAction = Add Block | None
 
 type DragAction = Lift | MoveBy (Int, Int, Int) | Release
 
+type alias Position = (Int, Int)
+
 type alias ID = Int
 
 

@@ -1,3 +1,6 @@
+
+
+import Debug
 import Color exposing (..)
 import Graphics.Element exposing (..)
 import Graphics.Collage exposing (..)
@@ -49,12 +52,7 @@ dummyRockList = [
   , {value = 7, solid = False, color = purple}
   , {value = 8, solid = True, color = red}]
 
-
 --main = collage 700 700 (viewRocks (Just {pos= (-300, 300), rockList= dummyRockList} ))
-
-main = view dummyModel
-
-
 
 helperCircles = List.map (\ p -> (move  p (filled green(circle 5.0)))) [(0.0, 0.0)
                                                                         , (-50.0, 0.0)
@@ -72,6 +70,11 @@ view : Model -> Element
 view m =
   collage 700 700 ((flattenForest m.blocks) ++ menuButtons)
 
+
+main = Signal.map view foldModel
+
+foldModel : Signal Model 
+foldModel = Signal.foldp signalRouter dummyModel allUpdateSignals
 
 
 

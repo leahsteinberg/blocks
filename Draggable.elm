@@ -35,7 +35,7 @@ type MouseEvent = StartAt (Int, Int)
 
 type Action = Lift | MoveBy (Int, Int,Int) | Release
 
-type alias DragSignal = Signal ( Action)
+type alias DragSignal = Signal (Action)
 
 
 

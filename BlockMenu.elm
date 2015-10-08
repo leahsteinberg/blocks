@@ -25,7 +25,7 @@ makeBlockButtonCustom exp str col i =
   let 
       buttonBackground = (color col (centered (fromString str)))
   in
-      customButton (Signal.message boxTransform.address  (Add exp))
+      customButton (Signal.message blockTransform.address  (Add exp))
           buttonBackground buttonBackground buttonBackground
             |> toForm
             |> move (-300, 300 / 10 * (toFloat i))

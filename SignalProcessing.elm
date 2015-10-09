@@ -57,7 +57,9 @@ updateDrag action model = model
 updateBlock : BlockAction -> Model -> Model
 updateBlock action model =
     case action of
-        Add exp -> {model | blocks <- exp :: model.blocks}
+        Add exp -> {model | 
+            blocks <- (exp model.nextID) :: model.blocks
+            , nextID <- model.nextID + 1}
         _ -> model
 
 

@@ -20,45 +20,54 @@ menuBackground = rect 100 600
 
 
 
-makeBlockButtonCustom  : Exp -> String -> Color -> ID -> Form
-makeBlockButtonCustom exp str col i =
+makeMenuButtonCustom  : ExpTemplate -> String -> Color -> Int -> Form
+makeMenuButtonCustom expTemplate str col i =
   let 
       buttonBackground = (color col (centered (fromString str)))
   in
-      customButton (Signal.message blockTransform.address  (Add exp))
+      customButton (Signal.message blockTransform.address (Add expTemplate))
           buttonBackground buttonBackground buttonBackground
             |> toForm
             |> move (-300, 300 / 10 * (toFloat i))
 
 
 
-emptyFilterExp : String -> Color -> ID -> Exp
-emptyFilterExp str col id = H (Filter {
+emptyFilterExp : String -> Color -> ExpTemplate
+emptyFilterExp str col = (\id -> H (Filter {
                                 id = id
-                                , form = formHOF id str col (-200, 100)
+                                , form = formHOF id str col (-10, 0)
                                 , selected = False
-                                , pos = (-200, 100) }
+                                , pos = (-10, 0) }
                                 Nothing Nothing
-                                )
+                                ))
 
-emptyMapExp : String -> Color -> ID -> Exp
-emptyMapExp str col id = H (Map {
+emptyMapExp : String -> Color -> ExpTemplate
+emptyMapExp str col = (\id -> H (Map {
                                 id = id
-                                , form = formHOF id str col (-100, 0)
+                                , form = formHOF id str col (-100, 200)
                                 , selected = False
-                                , pos = (-100, 0) }
+                                , pos = (-100, 200) }
                                 Nothing Nothing
-                                )
+                                ))
+emptyMapExp2 : String -> Color -> ExpTemplate
+emptyMapExp2 str col = (\id -> H (Map {
+                                id = id
+                                , form = formHOF id str col (0, 100)
+                                , selected = False
+                                , pos = (0, 100) }
+                                Nothing Nothing
+                                ))
 
-menuData = [(emptyFilterExp, "filter", bRed, 1), (emptyMapExp, "map", bPurple, 2)]
+menuData = [(emptyFilterExp, "filter", bRed, 1), (emptyMapExp, "map", bPurple, 2), (emptyMapExp2, "map2", bRed, 3)]
 
 
-makeMenuButton : (String -> Color -> ID -> Exp) -> String -> Color -> ID -> Form
-makeMenuButton expFunc str col id = 
-    makeBlockButtonCustom (expFunc str col id) str col id
+
+makeMenuButton : ExpTemplate -> String -> Color -> Int -> Form
+makeMenuButton expTemp str col i = 
+    makeMenuButtonCustom expTemp str col i
 
 menuButtons : List Form
-menuButtons = List.map (\(expFunc, str, col, id) -> makeMenuButton expFunc str col id) menuData
+menuButtons = List.map (\(expFunc, str, col, i) -> makeMenuButton (expFunc str col) str col i) menuData
     
 
 

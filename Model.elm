@@ -34,13 +34,15 @@ type alias Rock = {value: Int
 
 type Action = DAction DragAction | BAction BlockAction
 
-type BlockAction = Add Exp | None
+type BlockAction = Add ExpTemplate | None
 
 type DragAction = Lift | MoveBy (Int, Int, Int) | Release
 
 type alias Position = (Int, Int)
 
 type alias ID = Int
+
+type alias ExpTemplate = (ID -> Exp)
 
 
 

@@ -3,12 +3,13 @@ import Graphics.Collage exposing (..)
 import Graphics.Element exposing (leftAligned, centered, color, size)
 import Text exposing (fromString)
 import Graphics.Input exposing (customButton)
-import Color exposing (Color, white)
+import Color exposing (Color, white, red)
 
 -- my modules
 import Constants exposing (..)
 import Model exposing (..)
 import SignalProcessing exposing(..)
+import Drag exposing (makeHoverable)
 
 
 
@@ -31,9 +32,10 @@ traverseExp exp =
 traverseHOF : HOF -> List Form
 traverseHOF hof =
   let
-      makeHOFView block mFunc mRocks = viewHOF block
+      makeHOFView block mFunc mRocks = [(group (viewHOF block
                                         ++ maybeFuncForm mFunc block.pos
-                                        ++ maybeRocksForm mRocks block.pos
+                                        ++ maybeRocksForm mRocks block.pos))
+                                        |> move (floatPos block.pos)]
 
       maybeRocksForm maybeRocks parentPos =
       case maybeRocks of
@@ -57,14 +59,31 @@ formHOF id str col pos =
       background = (leftAligned (applyStyle (fromString str)))
                       |> color col
                       |> size hofWidth hofHeight
+      (x, y) = floatPos pos
+      fw = hofWidth / 2
+      fh = hofHeight / 2
+      poly = polygon [(x + fh, y + fh+10)
+                                , (x+ fw + 5, y + fh)
+                                , (x + fw + 5, y+ fh/2)
+                                , (x + fw, y + fh/2)
+                                , (x + fw, y - (fh/2))
+                                , (x + fw + 5, y - (fh/2))
+                                , (x + fw + 5, y - fh)
+                                , (x  + fw, y - fh)
+                                , (x+ fw , y + fh-10)]
+                                |> filled red
   in
-      customButton (Signal.message selectBlock.address (Just id))
+      
+      group ((customButton (Signal.message selectBlock.address (Just id))
       background background background
-        |> toForm
-        |> move (floatPos pos)
+        |> makeHoverable id
+        |> toForm) :: [poly])
+------|> move (floatPos pos)
 
 viewHOF : Block -> List Form
-viewHOF block = [move (floatPos block.pos) block.form]
+viewHOF block = [ 
+--  move (floatPos block.pos) 
+    block.form]
 
 
 
@@ -76,7 +95,7 @@ viewFunc fun mParentPos =
   let getPos block = case mParentPos of
           Just pPos -> pPos
           _ -> block.pos
-      display block = [move (floatPos (getPos block)) block.form]
+      display block = [move (floatPos (-10, 0)) block.form]
   in
       case fun of
         P pred -> display pred.block
@@ -92,7 +111,7 @@ emptyFuncForm parentPos =
         |> color bGreen
         |> size funcWidth funcHeight
         |> toForm
-        |> move (fx- funcWidth-10, fy+10)--(fx , fy )
+        |> move (-10, 0)--(fx , fy )
         ]
 
 
@@ -109,10 +128,10 @@ viewRocks rocks mParentPos =
       rocksForm rocks = [(List.foldl addRock ([], 0) rocks.rockList)
                               |> fst
                               |> group
-                              |> move (floatPos pos)]
+                              |> move (40, 0)]
       rockBackground = rect rockListWidth rockHeight
                         |> filled white
-                        |> move (floatPos pos)
+                        |> move (40, 0)
   in
       rockBackground :: rocksForm rocks
 
@@ -141,7 +160,7 @@ emptyRockForm parentPos =
           |> color bBlue
           |> size rockListWidth rockHeight
           |> toForm
-          |> move (fx + 60, fy + 10)
+          |> move (60, 0 )
           ]
 
 

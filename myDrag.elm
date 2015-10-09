@@ -16,8 +16,6 @@ type BoxTransform = Add String | None
 
 
 
-
-
 processMetaAction : (Maybe Action -> Model -> Model) -> (BoxTransform -> Model -> Model) -> MetaAction -> Model -> Model
 processMetaAction fAction fBox ma m =
   case ma of
@@ -76,12 +74,12 @@ blockMenu = List.map makeBlockButtonCustom [("puppy", rgbLightPurple, 2), ("dump
 makeBlockButtonCustom  : (String, Color, Int) -> Form
 makeBlockButtonCustom (str, col, i) =
   let 
-      buttonBackground = (color col (centered (fromString str)))
+      buttonBackground = (color col (leftAligned (fromString str)))
   in
       customButton (Signal.message boxTransform.address (Add str))
           buttonBackground buttonBackground buttonBackground
             |> toForm
-            |> move (-300, 300 / 10 * (toFloat i))
+--            |> move (-300, 300 / 10 * (toFloat i))
 
 
 

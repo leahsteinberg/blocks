@@ -12,7 +12,6 @@ import SignalProcessing exposing(..)
 import Drag exposing (makeHoverable)
 
 
-
 -- - - - - - - - -  T R A V E R S A L S  - - - - - - - - - - 
 flattenForest : List Exp -> List Form
 flattenForest exps = List.concatMap traverseExp exps
@@ -28,14 +27,16 @@ traverseExp exp =
 
 -- - - - - - - - -  Higher Order Functions  - - - - - - - - - - 
 
-
 traverseHOF : HOF -> List Form
 traverseHOF hof =
   let
-      makeHOFView block mFunc mRocks = [(group (viewHOF block
-                                        ++ maybeFuncForm mFunc block.pos
-                                        ++ maybeRocksForm mRocks block.pos))
-                                        |> move (floatPos block.pos)]
+      makeHOFView block mFunc mRocks = 
+        let moveIt = move (floatPos block.pos)
+        in
+            List.map moveIt
+            ((viewHOF block)
+              ++  ((maybeFuncForm mFunc block.pos)
+              ++ (maybeRocksForm mRocks block.pos)))
 
       maybeRocksForm maybeRocks parentPos =
       case maybeRocks of
@@ -48,9 +49,10 @@ traverseHOF hof =
         _ -> emptyFuncForm parentPos
   in
       case hof of
-        Filter block mPred mRocks -> makeHOFView block mPred mRocks
+        Filter block mPred mRocks -> List.map (move (floatPos block.pos)) (viewHOF block)
+--          makeHOFView block mPred mRocks
 
-        Map block mTransform mRocks -> makeHOFView block mTransform mRocks
+        Map block mTransform mRocks -> List.map (move (floatPos block.pos)) (viewHOF block)--makeHOFView block mTransform mRocks
 
 
 formHOF : Int -> String -> Color -> Model.Position -> Form
@@ -60,31 +62,38 @@ formHOF id str col pos =
                       |> color col
                       |> size hofWidth hofHeight
       (x, y) = floatPos pos
-      fw = hofWidth / 2
-      fh = hofHeight / 2
-      poly = polygon [(x + fh, y + fh+10)
-                                , (x+ fw + 5, y + fh)
-                                , (x + fw + 5, y+ fh/2)
-                                , (x + fw, y + fh/2)
-                                , (x + fw, y - (fh/2))
-                                , (x + fw + 5, y - (fh/2))
-                                , (x + fw + 5, y - fh)
-                                , (x  + fw, y - fh)
-                                , (x+ fw , y + fh-10)]
-                                |> filled red
-  in
-      
-      group ((customButton (Signal.message selectBlock.address (Just id))
-      background background background
-        |> makeHoverable id
-        |> toForm) :: [poly])
+       in
+           background
+            |> makeHoverable id
+            |> toForm
 ------|> move (floatPos pos)
 
 viewHOF : Block -> List Form
-viewHOF block = [ 
---  move (floatPos block.pos) 
-    block.form]
-
+viewHOF block =
+    let 
+        fw = hofWidth/2
+        fh = hofHeight/2
+        convexEnd = polygon [(-fw + 1, fh)
+                            ,(-fw-5+1 , fh)
+                            ,(-fw-5+1, fh/2)
+                            ,(-fw-10+1, fh/2)
+                            ,(-fw-10+1, -(fh/2))
+                            ,(-fw-5+1, -(fh/2))
+                            ,(-fw-5+1, -fh)
+                            ,(-fw+1, -fh)
+                            ,(-fw+1, fh) ]
+                                  |> filled bRed
+        concaveEnd = polygon [(fw-1, fh)
+                      , (fw + 9, fh)
+                      , (fw + 9, fh/2)
+                      , (fw + 4,  fh/2)
+                      , (fw + 4, -(fh/2))
+                      , ( fw + 9, -(fh/2))
+                      , (fw+9, -fh)
+                      , (fw - 1, -fh)]
+                      |> filled bRed
+    in
+        [convexEnd, concaveEnd, block.form]
 
 
 -- - - - - - - - -  F U N C S  - - - - - - - - - - 
@@ -95,7 +104,7 @@ viewFunc fun mParentPos =
   let getPos block = case mParentPos of
           Just pPos -> pPos
           _ -> block.pos
-      display block = [move (floatPos (-10, 0)) block.form]
+      display block = [move (floatPos (-90, 0)) block.form]
   in
       case fun of
         P pred -> display pred.block
@@ -111,7 +120,7 @@ emptyFuncForm parentPos =
         |> color bGreen
         |> size funcWidth funcHeight
         |> toForm
-        |> move (-10, 0)--(fx , fy )
+        |> move (-90, 0)--(fx , fy )
         ]
 
 
@@ -155,8 +164,20 @@ rockShape rock =
 emptyRockForm : (Int, Int) -> List Form
 emptyRockForm parentPos =
   let (fx, fy) = floatPos parentPos
+      fw = hofWidth / 2
+      fh = hofHeight / 2
+      concaveEnd = polygon [(fw, fh)
+                      , (fw + 10, fh)
+                      , (fw + 10, fh/2)
+                      , (fw + 5,  fh/2)
+                      , (fw + 5, -(fh/2))
+                      , ( fw + 10, -(fh/2))
+                      , (fw+10, -fh)
+                      , (fw , -fh)]
+                      |> filled bRed
   in
-      [centered (applyStyle (fromString "rocks"))
+      [concaveEnd, 
+      centered (applyStyle (fromString "rocks"))
           |> color bBlue
           |> size rockListWidth rockHeight
           |> toForm

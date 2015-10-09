@@ -7,13 +7,12 @@ import Constants exposing (..)
 
 -- mine
 import Model exposing (..)
+import Drag exposing (dragSignal)
 
 
 dummyDragMailbox = mailbox Release
 
 selectBlock = mailbox Nothing
-
-hover = mailbox Nothing
 
 blockTransform : Signal.Mailbox BlockAction
 blockTransform = Signal.mailbox None
@@ -29,11 +28,11 @@ fromDragAction da = DAction da
 
 handleBlockSignal : Signal Action
 handleBlockSignal = 
-            Signal.map fromBlockAction (Debug.watch "block transform signal" <~ blockTransform.signal)
+            Signal.map fromBlockAction blockTransform.signal
 
 handleDragSignal : Signal Action
 handleDragSignal = 
-            Signal.map fromDragAction dummyDragMailbox.signal
+            Signal.map fromDragAction (Debug.watch "drag signal" <~ dragSignal)
 
 allUpdateSignals : Signal Action
 allUpdateSignals = Signal.merge handleDragSignal handleBlockSignal
@@ -51,8 +50,11 @@ signalRouter sAction model = processAnyAction updateDrag updateBlock sAction mod
 
 -- - - - - - -  U P D A T E - M O D E L  - - - - - - - - - 
 
-updateDrag : DragAction -> Model -> Model
-updateDrag action model = model
+updateDrag : DragAction  -> Model -> Model
+updateDrag drag m =
+        case drag of
+          MoveBy (id, dx, dy) -> doDrag m id (dx, dy)
+          _ -> m
 
 updateBlock : BlockAction -> Model -> Model
 updateBlock action model =
@@ -76,88 +78,51 @@ updateBlock action model =
 -- - - - - - - - -  D R A G G I N G  - - - - - - - - - - 
 
 
---drag : Maybe (Int) -> MouseEvent -> Maybe (Action)
---drag hovering mouseEvent =
---  case hovering of
---    Just id ->
---      case mouseEvent of
---       MoveFromTo (ax, ay) (bx, by) -> Just (MoveBy (id, bx - ax, by - ay))
---       _ -> Nothing
---    _ -> Nothing
 
 
---isJustAction : Maybe(Action) -> Bool
---isJustAction ma =
---  case ma of
---    Just a -> True
---    Nothing -> False
-
---fromJust : Maybe a -> a
---fromJust ma =
---  case ma of
---    Just a -> a
-
---dragSignal : DragSignal
---dragSignal =
---  let 
---      maybeDrag = (Signal.map2 drag hover.signal mouseEvents)
---      justDrags = Signal.filter isJustAction (Just Lift) maybeDrag 
---      drags = Signal.map fromJust justDrags
---  in
---      drags
+doDrag : Model -> ID -> Model.Position -> Model
+doDrag m id (dx, dy) = 
+    {m | blocks <- moveForest id (dx, dy) m.blocks [] }
 
 
+moveForest : ID -> Model.Position -> List Exp -> List Exp -> List Exp
+moveForest id pos forest1 forest2 =
+  case forest1 of
+    [] -> forest2
+    (x::xs) ->
+        let (changed, newExp) = moveExp x id pos
+        in 
+            if changed then newExp :: (xs ++ forest2) else moveForest id pos xs (newExp :: forest2)
 
---removeNonEvents : MouseEvent -> Bool
---removeNonEvents e =
---  case e of
---    NoEvent -> False
---    _ -> True
-
---mouseEvents : Signal MouseEvent
---mouseEvents =
---  let makeMouseEvent (down, (px, py)) oldEvent =
---    case oldEvent of
---      StartAt (ix, iy) ->
---        if down
---        then MoveFromTo (ix, iy) (px, py)
---        else EndAt (px, py)
-
---      MoveFromTo (ax, ay) (bx, by) ->
---        if down
---        then MoveFromTo (bx, by) (px, py)
---        else EndAt (px, py)
-
---      EndAt (ix, iy) ->
---        if down 
---        then StartAt (px, py)
---        else NoEvent
-
---      NoEvent ->
---        if down
---        then StartAt (px, py)
---        else NoEvent
-
---  in
---     filter removeNonEvents (EndAt (0, 0)) 
---       (foldp makeMouseEvent (EndAt (0, 0)) 
---       (Signal.map2 (,) Mouse.isDown Mouse.position))
+    
 
 
+moveExp : Exp -> ID -> Model.Position -> (Bool, Exp)
+moveExp exp id pos = 
+    case exp of
+        H hof -> moveHOF hof id pos
+--        F func -> moveFunc func id
+--        R rocks -> moveRocks rocks
 
---moveBox : Model -> ID -> (Int, Int) -> Model
---moveBox m id (dx, dy) =  {m | boxes <-
---                                  (List.foldr
---                                  (\b boxes ->
---                                    if b.id == id
---                                    then {b | pos <- moveBy (dx, dy) b.pos} :: boxes
---                                    else b :: boxes)
---                                                  []
---                                                  m.boxes)}
+moveHOF : HOF -> ID -> Model.Position -> (Bool, Exp)
+moveHOF hof id pos =
+  case hof of
+    Filter block mF mR -> 
+      let (changed, newBlock) = moveBlock block id pos
+      in 
+          (changed, H (Filter newBlock mF mR))
 
---updateDrag : Maybe Action  -> Model -> Model
---updateDrag drag m =
---        case drag of
---          Just (MoveBy (id, dx, dy)) -> moveBox m id (dx, dy)
---          _ -> m
+    Map block mF mR -> 
+      let (changed, newBlock) = moveBlock block id pos
+      in
+          (changed, H (Map newBlock mF mR))
+
+
+moveBlock : Block -> ID -> Model.Position -> (Bool, Block)
+moveBlock block id pos =
+    if block.id == id then (True, {block | pos <- moveBy pos block.pos}) else (False, block)
+
+moveBy : (Int, Int) -> (Int, Int) -> (Int, Int)
+moveBy (dx, dy) (x, y) = (x + dx, y - dy)
+
 

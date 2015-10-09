@@ -6,7 +6,7 @@ import Text exposing (style)
 
 
 
-hofWidth = 70 + funcWidth + rockListWidth
+hofWidth = 70 + funcWidth
 hofHeight = 50
 funcWidth = 70
 funcHeight = 40

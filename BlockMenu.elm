@@ -38,7 +38,7 @@ emptyFilterBlock str col =
         {id = id
         , selected = False
         , pos = (-100, -100)
-        , ele = expToElements (H (Filter Nothing Nothing)) 1
+        , ele = expToElements (H (Filter Nothing Nothing)) id
         , exp = H (Filter Nothing Nothing)
         , forms = endForms bRed})
                                 
@@ -49,7 +49,7 @@ emptyMapBlock str col =
         {id = id
         , selected = False
         , pos = (100, 100)
-        , ele = expToElements (H (Map Nothing Nothing)) 2
+        , ele = expToElements (H (Map Nothing Nothing)) id
         , exp = H (Filter Nothing Nothing)
         , forms = endForms bBlue})
 
@@ -60,7 +60,7 @@ emptyMapBlock2 str col =
         {id = id
         , selected = False
         , pos = (10, 10)
-        , ele = expToElements (H (Map Nothing Nothing)) 2
+        , ele = expToElements (H (Map Nothing Nothing)) id
         , exp = H (Filter Nothing Nothing)
         , forms = endForms bBlue})
 

@@ -76,7 +76,7 @@ view m =
   in
       collage 700 700
       ( 
-        --(displayForms blockList) ++ 
+        (displayForms blockList) ++ 
          menuButtons ++
         (displayElements blockList) )
 

@@ -62,7 +62,7 @@ convexEnd col = polygon [(-fw + 1, fh)
                             ,(-fw-5+1, -fh)
                             ,(-fw+1, -fh)
                             ,(-fw+1, fh) ]
-                                  |> filled bRed
+                                  |> filled col
 
 concaveEnd col = polygon [(fw-1, fh)
                       , (fw + 9, fh)

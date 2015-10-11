@@ -18,16 +18,18 @@ type RockExpression = Higher HOF | R Rocks
 type HOF =  Filter (Maybe Func) (Maybe RockExpression) 
             | Map (Maybe Func) (Maybe RockExpression)
 
-type Func = P Pred | T Transform
+type Func = P (Rock -> Bool) | T (Rock -> Rock)
 
-type alias Pred = {name: String
-            , func: (Rock -> Bool)}
+--type RockFunc =  | (Rock -> Rock)
 
-type alias Transform = {name: String
-                , func: (Rock -> Rock)}
+--type alias FuncInfo = {name: String
+--            , func: RockFunc}
+
+--type alias Transform = {name: String
+--                , func: RockFunc}
 
 type alias Block = {id: ID
-                    , ele: Element
+                    , ele: List Element
                     , selected: Bool
                     , pos: (Int, Int)
                     , exp: Exp

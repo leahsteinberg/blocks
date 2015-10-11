@@ -1,6 +1,6 @@
 module View where 
 import Graphics.Collage exposing (..)
-import Graphics.Element exposing (leftAligned, centered, color, size, Element)
+import Graphics.Element exposing (leftAligned, centered, color, size, Element, container)
 import Text exposing (fromString)
 import Graphics.Input exposing (customButton)
 import Color exposing (Color, white, red)
@@ -17,7 +17,7 @@ import Drag exposing (makeHoverable)
 
 -- - - - - - - - -  N E W  -  S T U F F - - - - - - - - 
 
-expToElements : Exp -> ID -> Element
+expToElements : Exp -> ID -> List Element
 expToElements exp id =
   case exp of
     H hof -> hofToElements hof id
@@ -27,26 +27,56 @@ expToElements exp id =
 --    F func -> funcToElements func
 --    R rockExp -> rocksToElements rockExp
 
-hofToElements : HOF -> ID -> Element
+hofToElements : HOF -> ID -> List Element
 hofToElements hof id =
   case hof of
-    Filter mFunc mRockExp -> hofElement id "filter" bRed
-    Map mFunc mRockExp -> hofElement id "map" bBlue
+    Filter mFunc mRockExp -> 
+      case mFunc of 
+        Just func -> hofElementWithFunc func id "filter" bRed 
+        _ -> hofElementNoFunc id "filter" bRed
+    Map mFunc mRockExp -> hofElementNoFunc id "map" bBlue
 
 
 
-hofElement : ID -> String -> Color -> Element
-hofElement id str col =
-  (leftAligned (applyStyle (fromString str)))
+
+hofElementWithFunc : Func -> ID -> String -> Color -> List Element
+hofElementWithFunc func id str col =
+  let 
+      funcString  =       
+          case func of
+            P pred -> "pred"
+            T transform -> "transform"
+      funcElement funcStr =
+            leftAligned (applyStyle (fromString funcStr))
+                        |> color bGreen
+                        |> size funcWidth funcHeight
+
+  in
+      hofElementNoFunc id str col++ [funcElement funcString]
+
+
+hofElementNoFunc : ID -> String -> Color -> List Element
+hofElementNoFunc id str col =
+  let 
+      emptyFunc = Graphics.Element.centered (applySmallStyle (fromString "function"))
+                        |> color bGreen
+                        |> size funcWidth funcHeight
+                        
+
+      funcInContainer = (container 130 100 Graphics.Element.midRight emptyFunc)
+                                |> makeHoverable id
+      hof = (leftAligned (applyStyle (fromString str)))
                       |> color col
                       |> size hofWidth hofHeight
                       |> makeHoverable id
+  in
+    [hof, funcInContainer]
 
-
-
-
-
-
+      --[(leftAligned (applyStyle (fromString str)))
+      --                |> color col
+      --                |> size hofWidth hofHeight
+      --                |> makeHoverable id,
+      --                emptyFunc]
 
 
 
@@ -54,20 +84,10 @@ hofElement id str col =
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-fw = hofWidth/2
-fh = hofHeight/2
-convexEnd col = polygon [(-fw + 1, fh)
-                            ,(-fw-5+1 , fh)
-                            ,(-fw-5+1, fh/2)
-                            ,(-fw-10+1, fh/2)
-                            ,(-fw-10+1, -(fh/2))
-                            ,(-fw-5+1, -(fh/2))
-                            ,(-fw-5+1, -fh)
-                            ,(-fw+1, -fh)
-                            ,(-fw+1, fh) ]
-                                  |> filled col
-
-concaveEnd col = polygon [(fw-1, fh)
+addRightConcave col width height =
+  let fw = width / 2
+      fh = height / 2
+  in polygon [(fw-1, fh)
                       , (fw + 9, fh)
                       , (fw + 9, fh/2)
                       , (fw + 4,  fh/2)
@@ -77,9 +97,24 @@ concaveEnd col = polygon [(fw-1, fh)
                       , (fw - 1, -fh)]
                       |> filled col
 
+addLeftConvex col width height =
+  let fw = width / 2
+      fh = height / 2
+  in
+      polygon [(-fw + 1, fh)
+                    ,(-fw-5+1 , fh)
+                    ,(-fw-5+1, fh/2)
+                    ,(-fw-10+1, fh/2)
+                    ,(-fw-10+1, -(fh/2))
+                    ,(-fw-5+1, -(fh/2))
+                    ,(-fw-5+1, -fh)
+                    ,(-fw+1, -fh)
+                    ,(-fw+1, fh) ]
+                        |> filled col
+
 -- - - - - - - - -  A  P  I  - - - - - - - - - - - - - - - 
 
-endForms col = [convexEnd col, concaveEnd col]
+endForms col = [addLeftConvex col hofWidth hofHeight, addRightConcave col hofWidth hofHeight]
 
 
 
@@ -199,7 +234,7 @@ endForms col = [convexEnd col, concaveEnd col]
 
 -- - - - - - - - -  R O C K S - - - - - - - - - - 
 
-viewRocks : Rocks -> ID -> Element
+viewRocks : Rocks -> ID -> List Element
 viewRocks rocks id =
   let 
   --pos = case mParsentPos of
@@ -211,13 +246,17 @@ viewRocks rocks id =
       rocksForm rocks = [(List.foldl addRock ([], 0) rocks)
                               |> fst
                               |> group
-                              |> move (40, 0)]
-      rockBackground = rect rockListWidth rockHeight
+                              --|> move (40, 0)
+                              ]
+      background = rect rockListWidth rockHeight
                         |> filled white
-                        |> move (40, 0)
+                        --|> move (40, 0)
+      outlineRect = rect (rockListWidth+100) (rockHeight+100)
+                          |> outlined (solid bGreen)
+                          --|> move (45, 0)
   in
-      collage rockListWidth rockHeight (rockBackground :: rocksForm rocks)
-          |> makeHoverable id
+      [collage rockListWidth rockHeight (background ::(rocksForm rocks))
+          |> makeHoverable id]
 
 viewRock : Rock -> Form
 viewRock rock =

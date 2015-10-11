@@ -49,7 +49,7 @@ dummyRockBlock = {id= 1
                   , selected = False
                   , pos= (100, 100)
                   , exp = RE (R dummyRockList)
-                  , forms = []
+                  , forms = [addLeftConvex bRed rockListWidth hofHeight]
                    }
 
 
@@ -92,7 +92,9 @@ view m =
 
 displayElements : List Block -> List Form
 displayElements blocks =
-  List.map (\b-> move (floatPos b.pos) (toForm b.ele)) blocks
+  List.concatMap (\b-> 
+    List.map (\e ->  move (floatPos b.pos) (toForm e)) b.ele
+   ) blocks
 
 
 displayForms : List Block -> List Form
@@ -100,16 +102,12 @@ displayForms blocks =
   List.concatMap (\b -> 
     List.map (\f -> move (floatPos b.pos) f) b.forms) blocks
 
-displayBlock : Block -> List Form 
-displayBlock b =
-  (List.map (\f -> move (floatPos b.pos) f) b.forms) ++ [( move (floatPos b.pos) (toForm b.ele))]
+--displayBlock : Block -> List Form 
+--displayBlock b =
+--  (List.map (\f -> move (floatPos b.pos) f) b.forms) ++ [( move (floatPos b.pos) (toForm b.ele))]
 
 main = Signal.map view (Debug.watch "modelle" <~ foldModel)
 
 foldModel : Signal Model 
 foldModel = Signal.foldp signalRouter dummyModel2 allUpdateSignals
-
-
-
-
 

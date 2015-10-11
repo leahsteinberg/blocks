@@ -6,9 +6,9 @@ import Text exposing (style)
 
 
 
-hofWidth = 70 + funcWidth
+hofWidth = 90 + funcWidth
 hofHeight = 50
-funcWidth = 70
+funcWidth = 60
 funcHeight = 40
 rockListWidth = 10 * rockWidth
 rockWidth = 20
@@ -22,11 +22,21 @@ bPurple = rgb 207 169 213
 
 applyStyle =style {
             typeface = ["Courier New"]
-          , height = (Just 11.0)
+          , height = (Just 17.0)
           , color = Color.black
           , bold = True
           , italic = False
           , line = Nothing}
+
+
+applySmallStyle =style {
+            typeface = ["Courier New"]
+          , height = (Just 8.0)
+          , color = Color.black
+          , bold = True
+          , italic = False
+          , line = Nothing}
+
 
 floatPos pos = (toFloat (fst pos), toFloat (snd pos))
 

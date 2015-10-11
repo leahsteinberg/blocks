@@ -9,7 +9,7 @@ import Signal exposing (message)
 
 import Model exposing (..)
 --import Draggable exposing (..)
-import View exposing (formHOF)
+import View exposing (expToElements, endForms)
 import Constants exposing (..)
 import SignalProcessing exposing (..)
 
@@ -20,54 +20,60 @@ menuBackground = rect 100 600
 
 
 
-makeMenuButtonCustom  : ExpTemplate -> String -> Color -> Int -> Form
-makeMenuButtonCustom expTemplate str col i =
+makeMenuButtonCustom  : BlockTemplate -> String -> Color -> Int -> Form
+makeMenuButtonCustom blockTemplate str col i =
   let 
       buttonBackground = (color col (centered (fromString str)))
   in
-      customButton (Signal.message blockTransform.address (Add expTemplate))
+      customButton (Signal.message blockTransform.address (Add blockTemplate))
           buttonBackground buttonBackground buttonBackground
             |> toForm
             |> move (-300, 300 / 10 * (toFloat i))
 
 
 
-emptyFilterExp : String -> Color -> ExpTemplate
-emptyFilterExp str col = (\id -> H (Filter {
-                                id = id
-                                , form = formHOF id str col (-10, 0)
-                                , selected = False
-                                , pos = (-10, 0) }
-                                Nothing Nothing
-                                ))
+emptyFilterBlock : String -> Color -> BlockTemplate
+emptyFilterBlock str col = 
+    (\id -> 
+        {id = id
+        , selected = False
+        , pos = (-100, -100)
+        , ele = expToElements (H (Filter Nothing Nothing)) 1
+        , exp = H (Filter Nothing Nothing)
+        , forms = endForms bRed})
+                                
 
-emptyMapExp : String -> Color -> ExpTemplate
-emptyMapExp str col = (\id -> H (Map {
-                                id = id
-                                , form = formHOF id str col (-100, 200)
-                                , selected = False
-                                , pos = (-100, 200) }
-                                Nothing Nothing
-                                ))
-emptyMapExp2 : String -> Color -> ExpTemplate
-emptyMapExp2 str col = (\id -> H (Map {
-                                id = id
-                                , form = formHOF id str col (0, 100)
-                                , selected = False
-                                , pos = (0, 100) }
-                                Nothing Nothing
-                                ))
-
-menuData = [(emptyFilterExp, "filter", bRed, 1), (emptyMapExp, "map", bPurple, 2), (emptyMapExp2, "map2", bRed, 3)]
+emptyMapBlock : String -> Color -> BlockTemplate
+emptyMapBlock str col = 
+    (\id -> 
+        {id = id
+        , selected = False
+        , pos = (100, 100)
+        , ele = expToElements (H (Map Nothing Nothing)) 2
+        , exp = H (Filter Nothing Nothing)
+        , forms = endForms bBlue})
 
 
+emptyMapBlock2 : String -> Color -> BlockTemplate
+emptyMapBlock2 str col = 
+        (\id -> 
+        {id = id
+        , selected = False
+        , pos = (10, 10)
+        , ele = expToElements (H (Map Nothing Nothing)) 2
+        , exp = H (Filter Nothing Nothing)
+        , forms = endForms bBlue})
 
-makeMenuButton : ExpTemplate -> String -> Color -> Int -> Form
-makeMenuButton expTemp str col i = 
-    makeMenuButtonCustom expTemp str col i
+menuData = [(emptyFilterBlock, "filterrr", bRed, 1), (emptyMapBlock, "map", bPurple, 2), (emptyMapBlock2, "map2", bRed, 3)]
+
+
+
+makeMenuButton : BlockTemplate -> String -> Color -> Int -> Form
+makeMenuButton blockTemp str col i = 
+    makeMenuButtonCustom blockTemp str col i
 
 menuButtons : List Form
-menuButtons = List.map (\(expFunc, str, col, i) -> makeMenuButton (expFunc str col) str col i) menuData
+menuButtons = List.map (\(blockTemp, str, col, i) -> makeMenuButton (blockTemp str col) str col i) menuData
     
 
 

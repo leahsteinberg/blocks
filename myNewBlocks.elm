@@ -9,6 +9,7 @@ import Text exposing (fromString, typeface, style)
 import Signal exposing (..)
 import Maybe exposing (..)
 import List exposing (length)
+import Dict
 
 -- my modules
 import View exposing (..)
@@ -27,21 +28,21 @@ import BlockMenu exposing (menuButtons)
 applyTypeface = typeface ["Courier New", "times new roman"]
 
 
-dummyModel : Model
-dummyModel =
-  let
-      filter = (H (Filter {id= 1
-                          , form = formHOF 1 "filter" bRed (10, 10)
-                          , selected = False, pos = (0, 0)}
-                          Nothing (Just {pos =(5000, 5000), rockList = dummyRockList})))
-      map = (H (Map {id = 2, form = formHOF 2 "map" bPurple (10, 10), selected = False, pos = (100, 100)} Nothing (Just {pos= (1000, 100), rockList = dummyRockList})))
-  in
-      {nextID = 2
-        , blocks = [filter, map]
-        }
+--dummyModel : Model
+--dummyModel =
+--  let
+--      filter = (H (Filter {id= 1
+--                          , form = formHOF 1 "filter" bRed (10, 10)
+--                          , selected = False, pos = (0, 0)}
+--                          Nothing (Just {pos =(5000, 5000), rockList = dummyRockList})))
+--      map = (H (Map {id = 2, form = formHOF 2 "map" bPurple (10, 10), selected = False, pos = (100, 100)} Nothing (Just {pos= (1000, 100), rockList = dummyRockList})))
+--  in
+--      {nextID = 2
+--        , blocks = [filter, map]
+--        }
 
 
-dummyModel2 = {nextID = 1, blocks = []}
+dummyModel2 = {nextID = 1, blocks = Dict.empty}
 
 dummyRockList : List Rock
 dummyRockList = [
@@ -71,10 +72,30 @@ helperCircles = List.map (\ p -> (move  p (filled green(circle 5.0)))) [(0.0, 0.
 
 view : Model -> Element
 view m =
-  collage 700 700 ((flattenForest m.blocks) ++ menuButtons)
+  let blockList = Dict.values m.blocks
+  in
+      collage 700 700
+      ( 
+        --(displayForms blockList) ++ 
+         menuButtons ++
+        (displayElements blockList) )
 
 
-main = Signal.map view foldModel
+displayElements : List Block -> List Form
+displayElements blocks =
+  List.map (\b-> move (floatPos b.pos) (toForm b.ele)) blocks
+
+
+displayForms : List Block -> List Form
+displayForms blocks = 
+  List.concatMap (\b -> 
+    List.map (\f -> move (floatPos b.pos) f) b.forms) blocks
+
+displayBlock : Block -> List Form 
+displayBlock b =
+  (List.map (\f -> move (floatPos b.pos) f) b.forms) ++ [( move (floatPos b.pos) (toForm b.ele))]
+
+main = Signal.map view (Debug.watch "modelle" <~ foldModel)
 
 foldModel : Signal Model 
 foldModel = Signal.foldp signalRouter dummyModel2 allUpdateSignals

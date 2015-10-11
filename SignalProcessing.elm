@@ -4,6 +4,7 @@ import Debug
 import Signal exposing (..)
 import Maybe exposing (..)
 import Constants exposing (..)
+import Dict exposing (insert)
 
 -- mine
 import Model exposing (..)
@@ -28,7 +29,7 @@ fromDragAction da = DAction da
 
 handleBlockSignal : Signal Action
 handleBlockSignal = 
-            Signal.map fromBlockAction blockTransform.signal
+            Signal.map fromBlockAction (Debug.watch "block transform" <~ blockTransform.signal)
 
 handleDragSignal : Signal Action
 handleDragSignal = 
@@ -51,18 +52,18 @@ signalRouter sAction model = processAnyAction updateDrag updateBlock sAction mod
 -- - - - - - -  U P D A T E - M O D E L  - - - - - - - - - 
 
 updateDrag : DragAction  -> Model -> Model
-updateDrag drag m =
+updateDrag drag m = 
         case drag of
           MoveBy (id, dx, dy) -> doDrag m id (dx, dy)
           _ -> m
 
 updateBlock : BlockAction -> Model -> Model
-updateBlock action model =
+updateBlock action m = 
     case action of
-        Add exp -> {model | 
-            blocks <- (exp model.nextID) :: model.blocks
-            , nextID <- model.nextID + 1}
-        _ -> model
+        Add blockTemp -> {m | 
+            blocks <- insert m.nextID (blockTemp m.nextID) m.blocks
+            , nextID <- m.nextID + 1}
+        _ -> m
 
 
 -- - - - - - - - -  A D D - B L O C K  - - - - - - - - -
@@ -81,46 +82,54 @@ updateBlock action model =
 
 
 doDrag : Model -> ID -> Model.Position -> Model
-doDrag m id (dx, dy) = 
-    {m | blocks <- moveForest id (dx, dy) m.blocks [] }
+doDrag m id pos = 
+    {m | blocks <- 
+      Dict.insert id (dragBlock (Dict.get id m.blocks) pos) m.blocks
+    }
 
 
-moveForest : ID -> Model.Position -> List Exp -> List Exp -> List Exp
-moveForest id pos forest1 forest2 =
-  case forest1 of
-    [] -> forest2
-    (x::xs) ->
-        let (changed, newExp) = moveExp x id pos
-        in 
-            if changed then newExp :: (xs ++ forest2) else moveForest id pos xs (newExp :: forest2)
+dragBlock : Maybe Block -> Model.Position -> Block
+dragBlock mBlock position =
+  case mBlock of
+    Just block -> {block | pos <- moveBy position block.pos}
+
+--moveBy : (Int, Int) -> (Int, Int) -> (Int, Int)
+--moveForest : ID -> Model.Position -> List Exp -> List Exp -> List Exp
+--moveForest id pos forest1 forest2 =
+--  case forest1 of
+--    [] -> forest2
+--    (x::xs) ->
+--        let (changed, newExp) = moveExp x id pos
+--        in 
+--            if changed then newExp :: (xs ++ forest2) else moveForest id pos xs (newExp :: forest2)
 
     
 
 
-moveExp : Exp -> ID -> Model.Position -> (Bool, Exp)
-moveExp exp id pos = 
-    case exp of
-        H hof -> moveHOF hof id pos
---        F func -> moveFunc func id
---        R rocks -> moveRocks rocks
+--moveExp : Exp -> ID -> Model.Position -> (Bool, Exp)
+--moveExp exp id pos = 
+--    case exp of
+--        H hof -> moveHOF hof id pos
+----        F func -> moveFunc func id
+----        R rocks -> moveRocks rocks
 
-moveHOF : HOF -> ID -> Model.Position -> (Bool, Exp)
-moveHOF hof id pos =
-  case hof of
-    Filter block mF mR -> 
-      let (changed, newBlock) = moveBlock block id pos
-      in 
-          (changed, H (Filter newBlock mF mR))
+--moveHOF : HOF -> ID -> Model.Position -> (Bool, Exp)
+--moveHOF hof id pos =
+--  case hof of
+--    Filter block mF mR -> 
+--      let (changed, newBlock) = moveBlock block id pos
+--      in 
+--          (changed, H (Filter newBlock mF mR))
 
-    Map block mF mR -> 
-      let (changed, newBlock) = moveBlock block id pos
-      in
-          (changed, H (Map newBlock mF mR))
+--    Map block mF mR -> 
+--      let (changed, newBlock) = moveBlock block id pos
+--      in
+--          (changed, H (Map newBlock mF mR))
 
 
-moveBlock : Block -> ID -> Model.Position -> (Bool, Block)
-moveBlock block id pos =
-    if block.id == id then (True, {block | pos <- moveBy pos block.pos}) else (False, block)
+--moveBlock : Block -> ID -> Model.Position -> (Bool, Block)
+--moveBlock block id pos =
+--    if block.id == id then (True, {block | pos <- moveBy pos block.pos}) else (False, block)
 
 moveBy : (Int, Int) -> (Int, Int) -> (Int, Int)
 moveBy (dx, dy) (x, y) = (x + dx, y - dy)

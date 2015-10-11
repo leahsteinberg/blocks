@@ -5,28 +5,30 @@ import Color exposing (Color)
 import Maybe exposing (Maybe)
 import Graphics.Element exposing (Element)
 import Graphics.Collage exposing (Form)
+import Dict exposing (Dict)
 
-type alias Model = {nextID: ID, blocks: List (Exp)}
+type alias Model = {nextID: ID, blocks: Dict ID Block}
 
 type Exp =  H HOF 
             | R Rocks 
             | F Func
-type HOF =  Filter Block (Maybe Func) (Maybe Rocks) 
-            | Map Block (Maybe Func) (Maybe Rocks)
+
+type RockExpression = HOF | Rocks
+
+type HOF =  Filter (Maybe Func) (Maybe RockExpression) 
+            | Map (Maybe Func) (Maybe RockExpression)
 
 type Func = P Pred | T Transform
 
 type alias Pred = {name: String
-            , func: (Rock -> Bool)
-            , block: Block}
+            , func: (Rock -> Bool)}
 
 type alias Transform = {name: String
-                , func: (Rock -> Rock)
-                , block: Block}
+                , func: (Rock -> Rock)}
 
-type alias Block = {id: ID, form: Form, selected: Bool, pos: (Int, Int)}
+type alias Block = {id: ID, ele: Element, selected: Bool, pos: (Int, Int), exp: Exp, forms: List Form}
 
-type alias Rocks = {pos: (Int, Int), rockList: List Rock}
+type alias Rocks = List Rock
 
 type alias Rock = {value: Int
             , solid: Bool
@@ -34,7 +36,7 @@ type alias Rock = {value: Int
 
 type Action = DAction DragAction | BAction BlockAction
 
-type BlockAction = Add ExpTemplate | None
+type BlockAction = Add BlockTemplate | None
 
 type DragAction = Lift | MoveBy (Int, Int, Int) | Release
 
@@ -42,7 +44,7 @@ type alias Position = (Int, Int)
 
 type alias ID = Int
 
-type alias ExpTemplate = (ID -> Exp)
+type alias BlockTemplate = ID -> Block
 
 
 

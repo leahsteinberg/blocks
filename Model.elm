@@ -10,10 +10,10 @@ import Dict exposing (Dict)
 type alias Model = {nextID: ID, blocks: Dict ID Block}
 
 type Exp =  H HOF 
-            | R Rocks 
+            | RE RockExpression
             | F Func
 
-type RockExpression = HOF | Rocks
+type RockExpression = Higher HOF | R Rocks
 
 type HOF =  Filter (Maybe Func) (Maybe RockExpression) 
             | Map (Maybe Func) (Maybe RockExpression)
@@ -26,7 +26,12 @@ type alias Pred = {name: String
 type alias Transform = {name: String
                 , func: (Rock -> Rock)}
 
-type alias Block = {id: ID, ele: Element, selected: Bool, pos: (Int, Int), exp: Exp, forms: List Form}
+type alias Block = {id: ID
+                    , ele: Element
+                    , selected: Bool
+                    , pos: (Int, Int)
+                    , exp: Exp
+                    , forms: List Form}
 
 type alias Rocks = List Rock
 

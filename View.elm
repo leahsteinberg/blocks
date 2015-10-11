@@ -21,6 +21,9 @@ expToElements : Exp -> ID -> Element
 expToElements exp id =
   case exp of
     H hof -> hofToElements hof id
+    RE rockExp -> 
+      case rockExp of
+        R rocks -> viewRocks rocks id
 --    F func -> funcToElements func
 --    R rockExp -> rocksToElements rockExp
 
@@ -196,40 +199,42 @@ endForms col = [convexEnd col, concaveEnd col]
 
 -- - - - - - - - -  R O C K S - - - - - - - - - - 
 
---viewRocks : Rocks -> Maybe Model.Position -> List Form
---viewRocks rocks mParentPos =
---  let pos = case mParentPos of
---          Just (px, py) -> (px + 60, py + 10)
---          _ -> rocks.pos
---      newRock rock i = viewRock rock
---                        |> moveX ((i * rockWidth) - 85)
---      addRock rock (rList, i) = ((newRock rock i) :: rList, i + 1)
---      rocksForm rocks = [(List.foldl addRock ([], 0) rocks.rockList)
---                              |> fst
---                              |> group
---                              |> move (40, 0)]
---      rockBackground = rect rockListWidth rockHeight
---                        |> filled white
---                        |> move (40, 0)
---  in
---      rockBackground :: rocksForm rocks
+viewRocks : Rocks -> ID -> Element
+viewRocks rocks id =
+  let 
+  --pos = case mParsentPos of
+  --        Just (px, py) -> (px + 60, py + 10)
+  --        _ -> rocks.pos
+      newRock rock i = viewRock rock
+                        |> moveX ((i * rockWidth) - 85)
+      addRock rock (rList, i) = ((newRock rock i) :: rList, i + 1)
+      rocksForm rocks = [(List.foldl addRock ([], 0) rocks)
+                              |> fst
+                              |> group
+                              |> move (40, 0)]
+      rockBackground = rect rockListWidth rockHeight
+                        |> filled white
+                        |> move (40, 0)
+  in
+      collage rockListWidth rockHeight (rockBackground :: rocksForm rocks)
+          |> makeHoverable id
 
---viewRock : Rock -> Form
---viewRock rock =
---  let shape = rockShape rock
---      paint = if rock.solid 
---        then filled rock.color 
---        else outlined (solid rock.color)
---  in
---      paint shape
+viewRock : Rock -> Form
+viewRock rock =
+  let shape = rockShape rock
+      paint = if rock.solid 
+        then filled rock.color 
+        else outlined (solid rock.color)
+  in
+      paint shape
 
 
---rockShape : Rock -> Shape
---rockShape rock =
---  if| rock.value == 0 -> circle 10.0
---    | rock.value == 1 -> rect 3.0 29.0
---    | rock.value == 2 -> ngon 3 20
---    | otherwise -> ngon rock.value 15.0--((toFloat rock.value) * 1.0)
+rockShape : Rock -> Shape
+rockShape rock =
+  if| rock.value == 0 -> circle 10.0
+    | rock.value == 1 -> rect 3.0 29.0
+    | rock.value == 2 -> ngon 3 20
+    | otherwise -> ngon rock.value 15.0--((toFloat rock.value) * 1.0)
 
 --emptyRockForm : (Int, Int) -> List Form
 --emptyRockForm parentPos =

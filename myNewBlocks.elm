@@ -41,8 +41,17 @@ applyTypeface = typeface ["Courier New", "times new roman"]
 --        , blocks = [filter, map]
 --        }
 
+dummyBlocks = Dict.insert 1 dummyRockBlock Dict.empty
+dummyModel2 = {nextID = 2, blocks = dummyBlocks}
 
-dummyModel2 = {nextID = 1, blocks = Dict.empty}
+dummyRockBlock = {id= 1
+                  , ele = expToElements (RE (R  dummyRockList)) 1
+                  , selected = False
+                  , pos= (100, 100)
+                  , exp = RE (R dummyRockList)
+                  , forms = []
+                   }
+
 
 dummyRockList : List Rock
 dummyRockList = [

@@ -2,6 +2,7 @@ module Constants where
 
 import Color exposing (rgb)
 import Text exposing (style)
+import Graphics.Collage exposing (defaultLine)
 
 
 
@@ -12,7 +13,7 @@ funcWidth = 60
 funcHeight = 40
 rockListWidth = 10 * rockWidth
 rockWidth = 20
-rockHeight = 40
+rockHeight = hofHeight - 2
 
 bBlue = rgb 66 233 233
 bGreen = rgb 66 233 150
@@ -41,6 +42,7 @@ applySmallStyle =style {
 floatPos pos = (toFloat (fst pos), toFloat (snd pos))
 
 
+lineStyle col = {defaultLine
+                | color <- col, width <- 10.0}
 
-
-
+    

@@ -45,7 +45,7 @@ type Action = DAction DragAction | BAction BlockAction
 
 type BlockAction = Add BlockTemplate | None
 
-type DragAction = Lift | MoveBy (Int, Int, Int) | Release
+type DragAction = Lift | MoveBy (Int, Int, Int) | Release (Int, Int, Int)
 
 type alias Position = (Int, Int)
 

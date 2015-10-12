@@ -1,6 +1,6 @@
 module View where 
 import Graphics.Collage exposing (..)
-import Graphics.Element exposing (leftAligned, centered, color, size, Element, container)
+import Graphics.Element exposing (leftAligned, centered, color, size, Element, container, midRight)
 import Text exposing (fromString)
 import Graphics.Input exposing (customButton)
 import Color exposing (Color, white, red)
@@ -17,60 +17,127 @@ import Drag exposing (makeHoverable)
 
 -- - - - - - - - -  N E W  -  S T U F F - - - - - - - - 
 
-expToElements : Exp -> ID -> List Element
-expToElements exp id =
+expToElsAndForms : Exp -> ID -> (List Element, List Form)
+expToElsAndForms exp id = expToElementsShift exp id 1
+
+
+
+expToElementsShift : Exp -> ID -> Int -> (List Element, List Form)
+expToElementsShift exp id xShift =  
   case exp of
-    H hof -> hofToElements hof id
+    H hof -> hofToElements hof id xShift
     RE rockExp -> 
       case rockExp of
-        R rocks -> viewRocks rocks id
+        R rocks -> viewRocks rocks id xShift
+        Higher hof -> hofToElements hof id xShift
 --    F func -> funcToElements func
 --    R rockExp -> rocksToElements rockExp
 
-hofToElements : HOF -> ID -> List Element
-hofToElements hof id =
-  case hof of
-    Filter mFunc mRockExp -> 
-      case mFunc of 
-        Just func -> hofElementWithFunc func id "filter" bRed 
-        _ -> hofElementNoFunc id "filter" bRed
-    Map mFunc mRockExp -> hofElementNoFunc id "map" bBlue
-
-
-
-
-hofElementWithFunc : Func -> ID -> String -> Color -> List Element
-hofElementWithFunc func id str col =
+hofToElements : HOF -> ID -> Int -> (List Element, List Form)
+hofToElements hof id xShift =
   let 
-      funcString  =       
-          case func of
-            P pred -> "pred"
-            T transform -> "transform"
-      funcElement funcStr =
-            leftAligned (applyStyle (fromString funcStr))
-                        |> color bGreen
-                        |> size funcWidth funcHeight
-
-  in
-      hofElementNoFunc id str col++ [funcElement funcString]
-
-
-hofElementNoFunc : ID -> String -> Color -> List Element
-hofElementNoFunc id str col =
-  let 
-      emptyFunc = Graphics.Element.centered (applySmallStyle (fromString "function"))
-                        |> color bGreen
-                        |> size funcWidth funcHeight
-                        
-
-      funcInContainer = (container 130 100 Graphics.Element.midRight emptyFunc)
-                                |> makeHoverable id
-      hof = (leftAligned (applyStyle (fromString str)))
+      --clearElement = spacer (hofWidth+10) hofHeight
+      hofElForContainer str col = --(collage (hofWidth*xShift*2) hofHeight )
+                      (leftAligned (applyStyle (fromString str)))
                       |> color col
                       |> size hofWidth hofHeight
+      hofEl str col = container (xShift*(2*(hofWidth +10))) hofHeight midRight (hofElForContainer str col)
+                     -- |>toForm
+                      --|> moveX (toFloat xShift*(hofWidth+10))
+                      --])
+                      
                       |> makeHoverable id
+      hofForms col = endForms col xShift
   in
-    [hof, funcInContainer]
+      case hof of
+        Filter mFunc mRockExp -> 
+          let 
+              attachments = hofAttachments mFunc mRockExp id bRed xShift
+          in
+              (hofEl "filter" bRed :: (fst attachments), (hofForms bRed)++ (snd attachments))
+        Map mFunc mRockExp -> 
+          let
+              attachments = hofAttachments mFunc mRockExp id bBlue xShift
+          in
+              (hofEl "map" bBlue :: (fst attachments), (hofForms bBlue)++ (snd attachments))
+
+
+hofAttachments : Maybe Func -> Maybe RockExpression -> ID -> Color -> Int -> (List Element, List Form)
+hofAttachments mFunc mRE id col xShift =
+  let 
+      funcElements = 
+        case mFunc of
+          Just func -> ([funcToElement func id], [])
+          Nothing -> ([emptyFunc col id xShift], [])
+
+      rockExpElements =
+        case mRE of
+          Just re -> expToElementsShift (RE re) id (xShift+1) ---TODO
+            --case re of
+            --Higher hof -> expToElementsShift (hof id (xShift + hofWidth)
+            --R rockExp -> expToElementsShift rockExp id (xShift + hofWidth)
+          Nothing -> ([], [])
+
+  in
+      ((fst funcElements) ++ (fst rockExpElements), (snd funcElements) ++ (snd rockExpElements))
+      
+
+funcToElement : Func -> ID -> Element
+funcToElement func id =
+  (leftAligned (applyStyle (fromString "filled func")))
+                      |> color bGreen
+                      |> size funcWidth funcHeight
+                      |> makeHoverable id
+
+
+
+
+emptyFunc : Color -> ID -> Int -> Element
+emptyFunc col id xShift = 
+  let emptyF = Graphics.Element.centered (applySmallStyle (fromString "function"))
+                        |> color bGreen
+                        |> size funcWidth funcHeight
+  in
+      (container (xShift*(2*(hofWidth +10))) 100 midRight emptyF)
+                                |> makeHoverable id
+
+
+
+
+--hofElementWithFunc : HOF -> Func -> ID -> String -> Color -> Int -> List Element
+--hofElementWithFunc hof func id str col xShift =
+--  let 
+--      funcString  =       
+--          case func of
+--            P pred -> "pred"
+--            T transform -> "transform"
+--      funcElement funcStr =
+--            leftAligned (applyStyle (fromString funcStr))
+--                        |> color bGreen
+--                        |> size funcWidth funcHeight
+
+--  in
+--      hofElementNoFunc id str col xShift ++ [funcElement funcString]
+
+
+--hofElementNoFunc : HOF -> ID -> String -> Color -> Int -> List Element
+--hofElementNoFunc hof id str col xShift =
+--  let 
+--      emptyFunc = Graphics.Element.centered (applySmallStyle (fromString "function")
+--                        |> color bGreen
+--                        |> size funcWidth funcHeight
+                        
+
+--      funcInContainer = (container 130 100 Graphics.Element.midRight emptyFunc)
+--                                |> makeHoverable id
+--      hof = (leftAligned (applyStyle (fromString str)))
+--                      |> color col
+--                      |> size hofWidth hofHeight
+--                      |> makeHoverable id
+--  in
+--      case hof of
+
+--    [hof, funcInContainer]
 
       --[(leftAligned (applyStyle (fromString str)))
       --                |> color col
@@ -83,10 +150,16 @@ hofElementNoFunc id str col =
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
-addRightConcave col width height =
-  let fw = width / 2
-      fh = height / 2
+addRightConcave : Color -> Int -> Int -> Int -> Form
+addRightConcave col xShift width height =
+  let fw =  (toFloat width) / 2
+      fh = (toFloat height) / 2
+      offset = 
+        if |xShift == 0 -> 0
+            |xShift == 1 -> 2
+            |xShift == 2 -> 11.5
+            |xShift == 3 -> 22
+            |otherwise -> 7 * xShift
   in polygon [(fw-1, fh)
                       , (fw + 9, fh)
                       , (fw + 9, fh/2)
@@ -96,10 +169,21 @@ addRightConcave col width height =
                       , (fw+9, -fh)
                       , (fw - 1, -fh)]
                       |> filled col
+                      |> moveX ((toFloat ((84) + ((xShift-1) *hofWidth))) +  offset)                        
+--                      --|> moveX (toFloat ((xShift*(hofWidth))))  
 
-addLeftConvex col width height =
-  let fw = width / 2
-      fh = height / 2
+addLeftConvex : Color -> Int -> Int -> Int -> Form
+addLeftConvex col xShift width height =
+  let fw = (toFloat width) / 2
+      fh = (toFloat height) / 2
+      offset = 
+        if |xShift == 0 -> 0
+            |xShift == 1 -> 2
+            |xShift == 2 -> 11.5
+            |xShift == 3 -> 22
+            |xShift == 4 -> 58
+            |otherwise -> 7 * xShift
+
   in
       polygon [(-fw + 1, fh)
                     ,(-fw-5+1 , fh)
@@ -111,10 +195,17 @@ addLeftConvex col width height =
                     ,(-fw+1, -fh)
                     ,(-fw+1, fh) ]
                         |> filled col
+                        |> moveX ((toFloat ((84) + ((xShift-1) *hofWidth))) +  offset)       
+--((toFloat ((84) + ((xShift-1) *hofWidth))) +  (1.9 * (toFloat xShift))) 
+
+                          --(xShift*(hofWidth))+ )) 
+--                          --- (xShift *hofWidth//2) + 10))
+
+
 
 -- - - - - - - - -  A  P  I  - - - - - - - - - - - - - - - 
 
-endForms col = [addLeftConvex col hofWidth hofHeight, addRightConcave col hofWidth hofHeight]
+endForms col xShift = [addLeftConvex col xShift hofWidth hofHeight, addRightConcave col xShift hofWidth hofHeight]
 
 
 
@@ -234,29 +325,35 @@ endForms col = [addLeftConvex col hofWidth hofHeight, addRightConcave col hofWid
 
 -- - - - - - - - -  R O C K S - - - - - - - - - - 
 
-viewRocks : Rocks -> ID -> List Element
-viewRocks rocks id =
+viewRocks : Rocks -> ID -> Int -> (List Element, List Form)
+viewRocks rocks id xShift =
   let 
-  --pos = case mParsentPos of
-  --        Just (px, py) -> (px + 60, py + 10)
-  --        _ -> rocks.pos
       newRock rock i = viewRock rock
-                        |> moveX ((i * rockWidth) - 85)
+                        |> moveX (i * rockWidth)
       addRock rock (rList, i) = ((newRock rock i) :: rList, i + 1)
       rocksForm rocks = [(List.foldl addRock ([], 0) rocks)
                               |> fst
                               |> group
-                              --|> move (40, 0)
+
                               ]
-      background = rect rockListWidth rockHeight
-                        |> filled white
-                        --|> move (40, 0)
-      outlineRect = rect (rockListWidth+100) (rockHeight+100)
-                          |> outlined (solid bGreen)
-                          --|> move (45, 0)
+      background = rect (rockListWidth-3) (rockHeight-3)
+                        |> outlined (solid bGreen)
+                        |> moveX (toFloat 86)
+
+      rockElement = collage (rockListWidth*2) rockHeight (background ::(rocksForm rocks))
+                            
+      shift = if xShift == 0 then rockListWidth else ((xShift)*2 *(hofWidth))+rockListWidth
+
+      rockInContainer = container shift hofHeight midRight rockElement
+                            |> makeHoverable id
+-----                        |> moveX (toFloat ((xShift)*(hofWidth+10)))
+
+      --outlineRect = rect (rockListWidth+100) (rockHeight+100)
+      --                    |> outlined (Constants.lineStyle bGreen)
   in
-      [collage rockListWidth rockHeight (background ::(rocksForm rocks))
-          |> makeHoverable id]
+      ([rockInContainer]
+          ,
+          [addLeftConvex bGreen xShift rockListWidth hofHeight])
 
 viewRock : Rock -> Form
 viewRock rock =

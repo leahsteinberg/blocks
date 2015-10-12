@@ -9,7 +9,7 @@ import Signal exposing (message)
 
 import Model exposing (..)
 --import Draggable exposing (..)
-import View exposing (expToElements, endForms)
+import View exposing (expToElsAndForms, endForms)
 import Constants exposing (..)
 import SignalProcessing exposing (..)
 
@@ -28,43 +28,52 @@ makeMenuButtonCustom blockTemplate str col i =
       customButton (Signal.message blockTransform.address (Add blockTemplate))
           buttonBackground buttonBackground buttonBackground
             |> toForm
-            |> move (-300, 300 / 10 * (toFloat i))
+            |> move (-450, 300 / 10 * (toFloat i))
 
 
 
 emptyFilterBlock : String -> Color -> BlockTemplate
 emptyFilterBlock str col = 
     (\id -> 
-        {id = id
-        , selected = False
-        , pos = (-100, -100)
-        , ele = expToElements (H (Filter Nothing Nothing)) id
-        , exp = H (Filter Nothing Nothing)
-        , forms = endForms bRed})
+        let 
+                (els, forms) =expToElsAndForms (H (Filter Nothing Nothing)) id
+        in 
+                {id = id
+                    , selected = False
+                    , pos = (-100, -100)
+                    , ele = els
+                    , exp = H (Filter Nothing Nothing)
+                    , forms = forms})
                                 
 
 emptyMapBlock : String -> Color -> BlockTemplate
 emptyMapBlock str col = 
     (\id -> 
-        {id = id
-        , selected = False
-        , pos = (100, 100)
-        , ele = expToElements (H (Map Nothing Nothing)) id
-        , exp = H (Filter Nothing Nothing)
-        , forms = endForms bBlue})
+        let 
+                (els, forms) =expToElsAndForms (H (Map Nothing Nothing)) id
+        in 
+                {id = id
+                    , selected = False
+                    , pos = (100, 100)
+                    , ele = els
+                    , exp = H (Map Nothing Nothing)
+                    , forms = forms})
 
 
 emptyMapBlock2 : String -> Color -> BlockTemplate
 emptyMapBlock2 str col = 
-        (\id -> 
-        {id = id
-        , selected = False
-        , pos = (10, 10)
-        , ele = expToElements (H (Map Nothing Nothing)) id
-        , exp = H (Filter Nothing Nothing)
-        , forms = endForms bBlue})
+    (\id -> 
+        let 
+                (els, forms) =expToElsAndForms (H (Map Nothing Nothing)) id
+        in 
+                {id = id
+                    , selected = False
+                    , pos = (200, 200)
+                    , ele = els
+                    , exp = H (Map Nothing Nothing)
+                    , forms = forms})
 
-menuData = [(emptyFilterBlock, "filterrr", bRed, 1), (emptyMapBlock, "map", bPurple, 2), (emptyMapBlock2, "map2", bRed, 3)]
+menuData = [(emptyFilterBlock, "filter", bRed, 1), (emptyMapBlock, "map", bPurple, 2)]
 
 
 

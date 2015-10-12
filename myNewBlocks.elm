@@ -41,16 +41,32 @@ applyTypeface = typeface ["Courier New", "times new roman"]
 --        , blocks = [filter, map]
 --        }
 
-dummyBlocks = Dict.insert 1 dummyRockBlock Dict.empty
+dummyBlocks = Dict.insert 1 dummyMapAndRockBlock Dict.empty
 dummyModel2 = {nextID = 2, blocks = dummyBlocks}
 
-dummyRockBlock = {id= 1
-                  , ele = expToElements (RE (R  dummyRockList)) 1
-                  , selected = False
-                  , pos= (100, 100)
-                  , exp = RE (R dummyRockList)
-                  , forms = [addLeftConvex bRed rockListWidth hofHeight]
-                   }
+dummyMapAndRockBlock = 
+  let 
+  expression = H (Map Nothing (Just (Higher (Filter Nothing (Just (Higher (Map  Nothing (Just (R dummyRockList)) )))))))
+  (els, forms) = expToElsAndForms expression 1
+  in
+      {id = 1
+      , ele = els
+      , pos = (0, 0)
+      , exp = expression
+      , forms = forms
+      , selected = False}
+
+
+dummyRockBlock = 
+  let (els, forms) = expToElsAndForms (RE (R  dummyRockList)) 1
+  in
+      {id= 1
+          , ele = els
+          , selected = False
+          , pos= (100, 100)
+          , exp = RE (R dummyRockList)
+          , forms = forms
+           }
 
 
 dummyRockList : List Rock
@@ -83,7 +99,7 @@ view : Model -> Element
 view m =
   let blockList = Dict.values m.blocks
   in
-      collage 700 700
+      collage 1000 700
       ( 
         (displayForms blockList) ++ 
          menuButtons ++

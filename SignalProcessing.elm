@@ -55,6 +55,7 @@ updateDrag : DragAction  -> Model -> Model
 updateDrag drag m = 
         case drag of
           MoveBy (id, dx, dy) -> doDrag m id (dx, dy)
+          Release (id, x, y) -> checkCombine m id (x, y)
           _ -> m
 
 updateBlock : BlockAction -> Model -> Model
@@ -66,8 +67,10 @@ updateBlock action m =
         _ -> m
 
 
--- - - - - - - - -  A D D - B L O C K  - - - - - - - - -
+-- - - - - - - - -  C O M B I N E - B L O C K  - - - - - - - - -
 
+checkCombine : Model -> ID -> Model.Position -> Model
+checkCombine m id p = m
 
 
 
@@ -77,7 +80,6 @@ updateBlock action m =
 
 
 -- - - - - - - - -  D R A G G I N G  - - - - - - - - - - 
-
 
 
 

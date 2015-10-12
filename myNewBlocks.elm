@@ -10,6 +10,7 @@ import Signal exposing (..)
 import Maybe exposing (..)
 import List exposing (length)
 import Dict
+import Window
 
 -- my modules
 import View exposing (..)
@@ -41,29 +42,34 @@ applyTypeface = typeface ["Courier New", "times new roman"]
 --        , blocks = [filter, map]
 --        }
 
-dummyBlocks = Dict.insert 1 dummyMapAndRockBlock Dict.empty
-dummyModel2 = {nextID = 2, blocks = dummyBlocks}
+dummyBlocks = Dict.insert 4 (dummyMapAndRockBlock smallerExp 4) (Dict.insert 3 dummyRockBlock (Dict.insert 2 (dummyMapAndRockBlock smallExp 2) (Dict.insert 1 (dummyMapAndRockBlock bigExp 1) Dict.empty)))
+dummyModel2 = {nextID = 4, blocks = dummyBlocks}
 
-dummyMapAndRockBlock = 
+smallerExp = H (Map  Nothing (Just (R dummyRockList)))
+
+bigExp = H (Map Nothing (Just (Higher (Filter Nothing (Just (Higher (Map  Nothing (Just (R dummyRockList)) )))))))
+
+smallExp = H (Filter Nothing (Just (Higher (Map  Nothing (Just (R dummyRockList)) ))))
+
+dummyMapAndRockBlock exp id = 
   let 
-  expression = H (Map Nothing (Just (Higher (Filter Nothing (Just (Higher (Map  Nothing (Just (R dummyRockList)) )))))))
-  (els, forms) = expToElsAndForms expression 1
+  (els, forms) = expToElsAndForms exp id
   in
-      {id = 1
+      {id = id
       , ele = els
-      , pos = (0, 0)
-      , exp = expression
+      , pos = ((-id)*50, (-id)*50)
+      , exp = exp
       , forms = forms
       , selected = False}
 
 
 dummyRockBlock = 
-  let (els, forms) = expToElsAndForms (RE (R  dummyRockList)) 1
+  let (els, forms) = expToElsAndForms (RE (R  dummyRockList)) 3
   in
-      {id= 1
+      {id= 3
           , ele = els
           , selected = False
-          , pos= (100, 100)
+          , pos= (0, 0)
           , exp = RE (R dummyRockList)
           , forms = forms
            }
@@ -95,15 +101,17 @@ helperCircles = List.map (\ p -> (move  p (filled green(circle 5.0)))) [(0.0, 0.
                                                                         , (-300.0, 0.0)
                                                                         , (300, 0.0)]
 
-view : Model -> Element
-view m =
+view : (Int, Int) -> Model -> Element
+view (w, h) m =
+
   let blockList = Dict.values m.blocks
   in
-      collage 1000 700
+      collage w h
       ( 
         (displayForms blockList) ++ 
-         menuButtons ++
-        (displayElements blockList) )
+          (displayElements blockList) ++
+         menuButtons
+         )
 
 
 displayElements : List Block -> List Form
@@ -122,7 +130,7 @@ displayForms blocks =
 --displayBlock b =
 --  (List.map (\f -> move (floatPos b.pos) f) b.forms) ++ [( move (floatPos b.pos) (toForm b.ele))]
 
-main = Signal.map view (Debug.watch "modelle" <~ foldModel)
+main = Signal.map2 view Window.dimensions (Debug.watch "modelle" <~ foldModel)
 
 foldModel : Signal Model 
 foldModel = Signal.foldp signalRouter dummyModel2 allUpdateSignals

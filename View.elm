@@ -159,6 +159,7 @@ addRightConcave col xShift width height =
             |xShift == 1 -> 2
             |xShift == 2 -> 11.5
             |xShift == 3 -> 22
+            |xShift == 4 -> 58
             |otherwise -> 7 * xShift
   in polygon [(fw-1, fh)
                       , (fw + 9, fh)
@@ -172,18 +173,26 @@ addRightConcave col xShift width height =
                       |> moveX ((toFloat ((84) + ((xShift-1) *hofWidth))) +  offset)                        
 --                      --|> moveX (toFloat ((xShift*(hofWidth))))  
 
-addLeftConvex : Color -> Int -> Int -> Int -> Form
-addLeftConvex col xShift width height =
+addLeftConvex : Color -> Int -> Int -> Int -> Bool -> Form
+addLeftConvex col xShift width height isRocks =
   let fw = (toFloat width) / 2
       fh = (toFloat height) / 2
       offset = 
-        if |xShift == 0 -> 0
-            |xShift == 1 -> 2
-            |xShift == 2 -> 11.5
-            |xShift == 3 -> 22
-            |xShift == 4 -> 58
-            |otherwise -> 7 * xShift
-
+        if not isRocks 
+          then
+            if |xShift == 0 -> 0
+                |xShift == 1 -> 2
+                |xShift == 2 -> 11.5
+                |xShift == 3 -> 22
+                |xShift == 4 -> 58
+                |otherwise -> 7 * xShift
+          else
+            if |xShift == 0 -> 0
+                |xShift == 1 -> 52
+                |xShift == 2 -> 40
+                |xShift == 3 -> 49
+                |xShift == 4 -> 58
+                |otherwise -> 7 * xShift
   in
       polygon [(-fw + 1, fh)
                     ,(-fw-5+1 , fh)
@@ -193,19 +202,15 @@ addLeftConvex col xShift width height =
                     ,(-fw-5+1, -(fh/2))
                     ,(-fw-5+1, -fh)
                     ,(-fw+1, -fh)
-                    ,(-fw+1, fh) ]
+                    ,(-fw+1, -fh) ]
                         |> filled col
                         |> moveX ((toFloat ((84) + ((xShift-1) *hofWidth))) +  offset)       
---((toFloat ((84) + ((xShift-1) *hofWidth))) +  (1.9 * (toFloat xShift))) 
-
-                          --(xShift*(hofWidth))+ )) 
---                          --- (xShift *hofWidth//2) + 10))
 
 
 
 -- - - - - - - - -  A  P  I  - - - - - - - - - - - - - - - 
 
-endForms col xShift = [addLeftConvex col xShift hofWidth hofHeight, addRightConcave col xShift hofWidth hofHeight]
+endForms col xShift = [addLeftConvex col xShift hofWidth hofHeight False, addRightConcave col xShift hofWidth hofHeight]
 
 
 
@@ -342,7 +347,14 @@ viewRocks rocks id xShift =
 
       rockElement = collage (rockListWidth*2) rockHeight (background ::(rocksForm rocks))
                             
-      shift = if xShift == 0 then rockListWidth else ((xShift)*2 *(hofWidth))+rockListWidth
+      shift = 
+        --if xShift == 0 then rockListWidth else ((xShift)*2 *(hofWidth))+rockListWidth
+              if |xShift == 0 -> 0
+                |xShift == 1 -> ((xShift)*2 *(hofWidth))+rockListWidth
+                |xShift == 2 -> ((xShift)*2 *(hofWidth))+rockListWidth-25
+                |xShift == 3 -> ((xShift)*2 *(hofWidth))+rockListWidth - 6
+                |xShift == 4 -> ((xShift)*2 *(hofWidth))+rockListWidth + 4
+                |otherwise -> 7 * xShift
 
       rockInContainer = container shift hofHeight midRight rockElement
                             |> makeHoverable id
@@ -353,7 +365,7 @@ viewRocks rocks id xShift =
   in
       ([rockInContainer]
           ,
-          [addLeftConvex bGreen xShift rockListWidth hofHeight])
+          [addLeftConvex bGreen xShift rockListWidth hofHeight True])
 
 viewRock : Rock -> Form
 viewRock rock =

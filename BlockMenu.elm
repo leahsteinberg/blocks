@@ -28,7 +28,7 @@ makeMenuButtonCustom blockTemplate str col i =
       customButton (Signal.message blockTransform.address (Add blockTemplate))
           buttonBackground buttonBackground buttonBackground
             |> toForm
-            |> move (-450, 300 / 10 * (toFloat i))
+            |> move (-500, 300 / 10 * (toFloat i))
 
 
 
@@ -45,20 +45,18 @@ emptyFilterBlock str col =
                     , exp = H (Filter Nothing Nothing)
                     , forms = forms})
                                 
-
 emptyMapBlock : String -> Color -> BlockTemplate
 emptyMapBlock str col = 
     (\id -> 
         let 
-                (els, forms) =expToElsAndForms (H (Map Nothing Nothing)) id
+                (els, forms) = expToElsAndForms (H (Map Nothing Nothing)) id
         in 
                 {id = id
                     , selected = False
-                    , pos = (100, 100)
+                    , pos = (-200, -200)
                     , ele = els
                     , exp = H (Map Nothing Nothing)
                     , forms = forms})
-
 
 emptyMapBlock2 : String -> Color -> BlockTemplate
 emptyMapBlock2 str col = 

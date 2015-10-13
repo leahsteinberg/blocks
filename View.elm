@@ -17,36 +17,39 @@ import Drag exposing (makeHoverable)
 
 -- - - - - - - - -  N E W  -  S T U F F - - - - - - - - 
 
-expToElsAndForms : Exp -> ID -> (List Element, List Form)
-expToElsAndForms exp id = expToElementsShift exp id 1
+expToElsAndForms : Exp -> ID -> (List Form, List Form)
+expToElsAndForms exp id = expToElementsShift exp id 0
 
 
 
-expToElementsShift : Exp -> ID -> Int -> (List Element, List Form)
+expToElementsShift : Exp -> ID -> Int -> (List Form, List Form)
 expToElementsShift exp id xShift =  
   case exp of
     H hof -> hofToElements hof id xShift
     RE rockExp -> 
       case rockExp of
         R rocks -> viewRocks rocks id xShift
-        Higher hof -> hofToElements hof id xShift
+        Higher horderfunc -> hofToElements horderfunc id xShift
 --    F func -> funcToElements func
 --    R rockExp -> rocksToElements rockExp
 
-hofToElements : HOF -> ID -> Int -> (List Element, List Form)
-hofToElements hof id xShift =
+hofToElements : HOF -> ID -> Int -> (List Form, List Form)
+hofToElements hof id xShift = 
   let 
       --clearElement = spacer (hofWidth+10) hofHeight
-      hofElForContainer str col = --(collage (hofWidth*xShift*2) hofHeight )
-                      (leftAligned (applyStyle (fromString str)))
+      hofEl str col = (leftAligned (applyStyle (fromString str)))
                       |> color col
                       |> size hofWidth hofHeight
-      hofEl str col = container (xShift*(2*(hofWidth +10))) hofHeight midRight (hofElForContainer str col)
+                      |> makeHoverable id
+                      |> toForm
+                      |> moveX ((hofWidth/2) + (toFloat (xShift * (hofWidth + blockOffset))))
+--      hofElWithContainer str col = container ((hofWidth/2) + (xShift* hofWidth)) hofHeight midRight (hofEl str col)
+--(xShift*(2*(hofWidth +10))) 
                      -- |>toForm
                       --|> moveX (toFloat xShift*(hofWidth+10))
                       --])
                       
-                      |> makeHoverable id
+                      
       hofForms col = endForms col xShift
   in
       case hof of
@@ -61,8 +64,7 @@ hofToElements hof id xShift =
           in
               (hofEl "map" bBlue :: (fst attachments), (hofForms bBlue)++ (snd attachments))
 
-
-hofAttachments : Maybe Func -> Maybe RockExpression -> ID -> Color -> Int -> (List Element, List Form)
+hofAttachments : Maybe Func -> Maybe RockExpression -> ID -> Color -> Int -> (List Form, List Form)
 hofAttachments mFunc mRE id col xShift =
   let 
       funcElements = 
@@ -82,24 +84,33 @@ hofAttachments mFunc mRE id col xShift =
       ((fst funcElements) ++ (fst rockExpElements), (snd funcElements) ++ (snd rockExpElements))
       
 
-funcToElement : Func -> ID -> Element
+funcToElement : Func -> ID -> Form
 funcToElement func id =
   (leftAligned (applyStyle (fromString "filled func")))
                       |> color bGreen
                       |> size funcWidth funcHeight
                       |> makeHoverable id
+                      |> toForm
 
 
 
 
-emptyFunc : Color -> ID -> Int -> Element
+emptyFunc : Color -> ID -> Int -> Form
 emptyFunc col id xShift = 
-  let emptyF = Graphics.Element.centered (applySmallStyle (fromString "function"))
+  Graphics.Element.centered (applySmallStyle (fromString "function"))
                         |> color bGreen
                         |> size funcWidth funcHeight
-  in
-      (container (xShift*(2*(hofWidth +10))) 100 midRight emptyF)
-                                |> makeHoverable id
+                        |> makeHoverable id
+                        |> toForm
+                        |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth )) + 35)
+
+
+  --let emptyF = Graphics.Element.centered (applySmallStyle (fromString "function"))
+  --                      |> color bGreen
+  --                      |> size funcWidth funcHeight
+  --in
+  --    (container (xShift*(2*(hofWidth +10))) 100 midRight emptyF)
+  --                              |> makeHoverable id
 
 
 
@@ -154,15 +165,9 @@ addRightConcave : Color -> Int -> Int -> Int -> Form
 addRightConcave col xShift width height =
   let fw =  (toFloat width) / 2
       fh = (toFloat height) / 2
-      offset = 
-        if |xShift == 0 -> 0
-            |xShift == 1 -> 2
-            |xShift == 2 -> 11.5
-            |xShift == 3 -> 22
-            |xShift == 4 -> 58
-            |otherwise -> 7 * xShift
+      offset = (toFloat (xShift* (hofWidth + blockOffset)) + (hofWidth/2))
   in polygon [(fw-1, fh)
-                      , (fw + 9, fh)
+                      , (fw + 9, fh )
                       , (fw + 9, fh/2)
                       , (fw + 4,  fh/2)
                       , (fw + 4, -(fh/2))
@@ -170,29 +175,17 @@ addRightConcave col xShift width height =
                       , (fw+9, -fh)
                       , (fw - 1, -fh)]
                       |> filled col
-                      |> moveX ((toFloat ((84) + ((xShift-1) *hofWidth))) +  offset)                        
---                      --|> moveX (toFloat ((xShift*(hofWidth))))  
+                      |> moveX  offset                      
 
 addLeftConvex : Color -> Int -> Int -> Int -> Bool -> Form
 addLeftConvex col xShift width height isRocks =
   let fw = (toFloat width) / 2
       fh = (toFloat height) / 2
-      offset = 
-        if not isRocks 
-          then
-            if |xShift == 0 -> 0
-                |xShift == 1 -> 2
-                |xShift == 2 -> 11.5
-                |xShift == 3 -> 22
-                |xShift == 4 -> 58
-                |otherwise -> 7 * xShift
-          else
-            if |xShift == 0 -> 0
-                |xShift == 1 -> 52
-                |xShift == 2 -> 40
-                |xShift == 3 -> 49
-                |xShift == 4 -> 58
-                |otherwise -> 7 * xShift
+      shouldAdd = if xShift == 0 then 0 else 1
+      offset =  if not isRocks then (toFloat (xShift* (hofWidth + blockOffset)) + (hofWidth/2))
+                  else 
+                    if xShift == 0 then hofWidth/2  else 
+                    (toFloat (xShift * (hofWidth + blockOffset)) +  (rockListWidth/2))
   in
       polygon [(-fw + 1, fh)
                     ,(-fw-5+1 , fh)
@@ -201,10 +194,10 @@ addLeftConvex col xShift width height isRocks =
                     ,(-fw-10+1, -(fh/2))
                     ,(-fw-5+1, -(fh/2))
                     ,(-fw-5+1, -fh)
-                    ,(-fw+1, -fh)
+                    ,(-fw+1, -fh )
                     ,(-fw+1, -fh) ]
                         |> filled col
-                        |> moveX ((toFloat ((84) + ((xShift-1) *hofWidth))) +  offset)       
+                        |> moveX offset    
 
 
 
@@ -330,40 +323,33 @@ endForms col xShift = [addLeftConvex col xShift hofWidth hofHeight False, addRig
 
 -- - - - - - - - -  R O C K S - - - - - - - - - - 
 
-viewRocks : Rocks -> ID -> Int -> (List Element, List Form)
-viewRocks rocks id xShift =
+viewRocks : Rocks -> ID -> Int -> (List Form, List Form)
+viewRocks rocks id xShift = 
   let 
       newRock rock i = viewRock rock
-                        |> moveX (i * rockWidth)
+                        |> moveX ((i * rockWidth) - rockListWidth/2 + (rockWidth/2) + 5)
       addRock rock (rList, i) = ((newRock rock i) :: rList, i + 1)
-      rocksForm rocks = [(List.foldl addRock ([], 0) rocks)
-                              |> fst
-                              |> group
+      rockOffset = 0
 
-                              ]
+
+      rocksForm rocks = (List.foldl addRock ([], 0) rocks)
+                              |> fst
+                              
+                              
       background = rect (rockListWidth-3) (rockHeight-3)
                         |> outlined (solid bGreen)
-                        |> moveX (toFloat 86)
 
-      rockElement = collage (rockListWidth*2) rockHeight (background ::(rocksForm rocks))
+      rockElement = collage (rockListWidth) rockHeight ([background] ++ rocksForm rocks)
                             
-      shift = 
-        --if xShift == 0 then rockListWidth else ((xShift)*2 *(hofWidth))+rockListWidth
-              if |xShift == 0 -> 0
-                |xShift == 1 -> ((xShift)*2 *(hofWidth))+rockListWidth
-                |xShift == 2 -> ((xShift)*2 *(hofWidth))+rockListWidth-25
-                |xShift == 3 -> ((xShift)*2 *(hofWidth))+rockListWidth - 6
-                |xShift == 4 -> ((xShift)*2 *(hofWidth))+rockListWidth + 4
-                |otherwise -> 7 * xShift
-
-      rockInContainer = container shift hofHeight midRight rockElement
+      shift = if xShift == 0 then ((hofWidth/2) + (toFloat ((xShift)  * (hofWidth + blockOffset))))
+        else (toFloat (xShift)  * (hofWidth + blockOffset) + (rockListWidth/2))
+      rockForm = rockElement
                             |> makeHoverable id
------                        |> moveX (toFloat ((xShift)*(hofWidth+10)))
+                            |> toForm
+                            |> moveX shift
 
-      --outlineRect = rect (rockListWidth+100) (rockHeight+100)
-      --                    |> outlined (Constants.lineStyle bGreen)
   in
-      ([rockInContainer]
+      ([rockForm]
           ,
           [addLeftConvex bGreen xShift rockListWidth hofHeight True])
 

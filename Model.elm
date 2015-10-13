@@ -29,7 +29,7 @@ type Func = P (Rock -> Bool) | T (Rock -> Rock)
 --                , func: RockFunc}
 
 type alias Block = {id: ID
-                    , ele: List Element
+                    , ele: List Form
                     , selected: Bool
                     , pos: (Int, Int)
                     , exp: Exp

@@ -43,11 +43,11 @@ applyTypeface = typeface ["Courier New", "times new roman"]
 --        }
 
 dummyBlocks = Dict.insert 4 (dummyMapAndRockBlock smallerExp 4) (Dict.insert 3 dummyRockBlock (Dict.insert 2 (dummyMapAndRockBlock smallExp 2) (Dict.insert 1 (dummyMapAndRockBlock bigExp 1) Dict.empty)))
-dummyModel2 = {nextID = 4, blocks = dummyBlocks}
+dummyModel2 = {nextID = 5, blocks = dummyBlocks}
 
 smallerExp = H (Map  Nothing (Just (R dummyRockList)))
 
-bigExp = H (Map Nothing (Just (Higher (Filter Nothing (Just (Higher (Map  Nothing (Just (R dummyRockList)) )))))))
+bigExp = H (Map Nothing (Just (Higher (Filter Nothing (Just (Higher (Map  Nothing Nothing )))))))
 
 smallExp = H (Filter Nothing (Just (Higher (Map  Nothing (Just (R dummyRockList)) ))))
 
@@ -117,7 +117,7 @@ view (w, h) m =
 displayElements : List Block -> List Form
 displayElements blocks =
   List.concatMap (\b-> 
-    List.map (\e ->  move (floatPos b.pos) (toForm e)) b.ele
+    List.map (\e ->  move (floatPos b.pos) e) b.ele
    ) blocks
 
 

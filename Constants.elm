@@ -14,6 +14,7 @@ funcHeight = 40
 rockListWidth = 10 * rockWidth
 rockWidth = 20
 rockHeight = hofHeight - 2
+blockOffset = 10
 
 bBlue = rgb 66 233 233
 bGreen = rgb 66 233 150

@@ -87,8 +87,14 @@ collisionDetection block id model = model
 --  let 
 --      leftCorners = findLeftCorners (startsWithHOF dragBlock) dragBlock
 --  in
---      List.foldr (\b, answer ->) (Dict.values m.blocks)
+--      List.foldr (\b, answer ->
 
+
+--        ) (Dict.values m.blocks)
+
+
+--closeEnough : ((Int, Int), (Int, Int)) -> ((Int, Int), (Int, Int)) -> Bool
+--closeEnough ((upX1, upY1), (downX1, downY1)) ((upX2, upY2), (downX2, downY))
 
 --checkLeftSide : ((Int, Int) (Int, Int)) -> Block -> (ID, Maybe Block)
 --checkLeftSide leftCorners block =
@@ -96,7 +102,7 @@ collisionDetection block id model = model
 --      rightCorners = findRightCorners block
 
 
-findRightCorners : Block -> ((Int, Int), (Int, Int))
+findRightCorners : Block -> (((Int, Int), (Int, Int)), Exp)
 findRightCorners block =
   case block.exp of
     H hof -> findRightCornersHOF hof ((fst block.pos) + (hofWidth//2), (snd block.pos))
@@ -106,7 +112,7 @@ findRightCorners block =
           fh = funcHeight // 2
           (x, y) = (block.pos)
       in
-          ((x + fw, y + fh), (x + fw, y - fh))
+          (((x + fw, y + fh), (x + fw, y - fh)), F func)
     RE rockExp ->
       case rockExp of
         Higher hof -> findRightCornersHOF hof ((fst block.pos) + (hofWidth//2), (snd block.pos)) ------ this case should never happen
@@ -117,21 +123,21 @@ findRightCorners block =
               x = fst block.pos
               y = snd block.pos
           in
-              ((x + rw, y + rh), (x + rw, y - rh))
+              (((x + rw, y + rh), (x + rw, y - rh)), RE(R rocks))
 
 
-findRightCornersPos : Exp -> (Int, Int) -> ((Int, Int), (Int, Int))
+findRightCornersPos : Exp -> (Int, Int) -> (((Int, Int), (Int, Int)), Exp)
 findRightCornersPos exp (rXPos, rYPos) =
   case exp of
     H hof -> findRightCornersHOF hof (rXPos, rYPos)-- cant be a first one
     RE rockExp ->
       case rockExp of
         Higher hof -> findRightCornersHOF hof ((rXPos +(hofWidth), rYPos))
-        R rocks -> ((rXPos + rockListWidth, rYPos + rockHeight),(rXPos + rockListWidth, rYPos - rockHeight))
+        R rocks -> (((rXPos + rockListWidth, rYPos + rockHeight),(rXPos + rockListWidth, rYPos - rockHeight)), RE (R rocks))
 
 
 
-findRightCornersHOF : HOF -> (Int, Int) -> ((Int, Int), (Int, Int))
+findRightCornersHOF : HOF -> (Int, Int) -> (((Int, Int), (Int, Int)), Exp)
 findRightCornersHOF hof (rXPos, rYPos) =
   let 
       addX mRockExp =
@@ -139,8 +145,8 @@ findRightCornersHOF hof (rXPos, rYPos) =
           Just rockExp ->
             case rockExp of 
                 Higher hof -> findRightCornersHOF hof ((rXPos + hofWidth), rYPos)
-                R rocks -> ((rXPos + rockListWidth, rYPos + rockHeight), (rXPos + rockListWidth, rYPos - rockHeight))
-          _ -> ((rXPos, rYPos + hofHeight), (rXPos, rYPos - hofHeight))
+                R rocks -> (((rXPos + rockListWidth, rYPos + rockHeight), (rXPos + rockListWidth, rYPos - rockHeight)), RE(R rocks))
+          _ -> (((rXPos, rYPos + hofHeight), (rXPos, rYPos - hofHeight)), H hof)
   in
       case hof of
         Filter mFunc mRockExp -> addX mRockExp

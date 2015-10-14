@@ -20,6 +20,8 @@ type HOF =  Filter (Maybe Func) (Maybe RockExpression)
 
 type Func = P (Rock -> Bool) | T (Rock -> Rock)
 
+
+--type CornerAction = ((Int, Int), (Int, Int))
 --type RockFunc =  | (Rock -> Rock)
 
 --type alias FuncInfo = {name: String

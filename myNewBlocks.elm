@@ -20,30 +20,15 @@ import SignalProcessing exposing (..)
 import BlockMenu exposing (menuButtons)
 
 
-
-
-
--- views
-
-
 applyTypeface = typeface ["Courier New", "times new roman"]
 
-
---dummyModel : Model
---dummyModel =
---  let
---      filter = (H (Filter {id= 1
---                          , form = formHOF 1 "filter" bRed (10, 10)
---                          , selected = False, pos = (0, 0)}
---                          Nothing (Just {pos =(5000, 5000), rockList = dummyRockList})))
---      map = (H (Map {id = 2, form = formHOF 2 "map" bPurple (10, 10), selected = False, pos = (100, 100)} Nothing (Just {pos= (1000, 100), rockList = dummyRockList})))
---  in
---      {nextID = 2
---        , blocks = [filter, map]
---        }
-
-dummyBlocks = Dict.insert 4 (dummyMapAndRockBlock smallerExp 4) (Dict.insert 3 dummyRockBlock (Dict.insert 2 (dummyMapAndRockBlock smallExp 2) (Dict.insert 1 (dummyMapAndRockBlock bigExp 1) Dict.empty)))
+dummyBlocksSmall = Dict.insert 2 (dummyMapAndRockBlock onlyMapExp 2) (Dict.insert 1 (dummyRockBlock  1)Dict.empty)
+dummyBlocks = Dict.insert 4 (dummyMapAndRockBlock smallerExp 4) (Dict.insert 3 (dummyRockBlock 3) (Dict.insert 2 (dummyMapAndRockBlock smallExp 2) (Dict.insert 1 (dummyMapAndRockBlock bigExp 1) Dict.empty)))
 dummyModel2 = {nextID = 5, blocks = dummyBlocks}
+
+dummyModelSmall = {nextID = 3, blocks = dummyBlocksSmall}
+
+onlyMapExp = H (Map  Nothing Nothing)
 
 smallerExp = H (Map  Nothing (Just (R dummyRockList)))
 
@@ -57,16 +42,16 @@ dummyMapAndRockBlock exp id =
   in
       {id = id
       , ele = els
-      , pos = ((-id)*50, (-id)*50)
+      , pos = (0, 0)
       , exp = exp
       , forms = forms
       , selected = False}
 
 
-dummyRockBlock = 
-  let (els, forms) = expToElsAndForms (RE (R  dummyRockList)) 3
+dummyRockBlock id = 
+  let (els, forms) = expToElsAndForms (RE (R  dummyRockList)) id
   in
-      {id= 3
+      {id= id
           , ele = els
           , selected = False
           , pos= (0, 0)
@@ -99,7 +84,13 @@ helperCircles = List.map (\ p -> (move  p (filled green(circle 5.0)))) [(0.0, 0.
                                                                         , (0.0, 100.0)
                                                                         , (0.0, -100.0)
                                                                         , (-300.0, 0.0)
+              
                                                                         , (300, 0.0)]
+
+
+centerBall = circle 10.0
+              |> filled  purple
+              |> move (0,0)
 
 view : (Int, Int) -> Model -> Element
 view (w, h) m =
@@ -107,7 +98,7 @@ view (w, h) m =
   let blockList = Dict.values m.blocks
   in
       collage w h
-      ( 
+      ( [centerBall] ++
         (displayForms blockList) ++ 
           (displayElements blockList) ++
          menuButtons
@@ -126,12 +117,9 @@ displayForms blocks =
   List.concatMap (\b -> 
     List.map (\f -> move (floatPos b.pos) f) b.forms) blocks
 
---displayBlock : Block -> List Form 
---displayBlock b =
---  (List.map (\f -> move (floatPos b.pos) f) b.forms) ++ [( move (floatPos b.pos) (toForm b.ele))]
 
-main = Signal.map2 view Window.dimensions (Debug.watch "modelle" <~ foldModel)
+main = Signal.map2 view Window.dimensions foldModel
 
 foldModel : Signal Model 
-foldModel = Signal.foldp signalRouter dummyModel2 allUpdateSignals
+foldModel = Signal.foldp signalRouter dummyModelSmall allUpdateSignals
 

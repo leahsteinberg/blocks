@@ -29,7 +29,7 @@ fromDragAction da = DAction da
 
 handleBlockSignal : Signal Action
 handleBlockSignal = 
-            Signal.map fromBlockAction (Debug.watch "block transform" <~ blockTransform.signal)
+            Signal.map fromBlockAction blockTransform.signal
 
 handleDragSignal : Signal Action
 handleDragSignal = 
@@ -66,11 +66,27 @@ updateBlock action m =
             , nextID <- m.nextID + 1}
         _ -> m
 
+-- ------- DE BUGGING -----
+
+--cornersSignal : Signal DragAction -> Signal (Maybe CornerAction)
+--cornersSignal sDrag =
+--    Signal.map (checkSignal 
+
+--checkSignal Model -> DragAction -> Maybe CornerAction
+--checkSignal da =
+--  case da of
+--    Release id -> findLeftCornersId id
+--    _ -> Nothing
+
+
+--findLeftCornersId : ID -> ((Int, Int), (Int, Int))
+--findLeftCornersId id =
+--  case Dict.get id 
 
 -- - - - - - - - -  C O M B I N E - B L O C K  - - - - - - - - -
 
 checkCombine : Model -> ID -> Model
-checkCombine m id = 
+checkCombine m id =
   let
       mBlock = Dict.get id m.blocks
   in 
@@ -79,7 +95,98 @@ checkCombine m id =
         Nothing -> m
 
 collisionDetection : Block -> ID -> Model -> Model
-collisionDetection block id model = model
+collisionDetection block id model = 
+  case block.exp of
+      RE rockExp ->
+          case rockExp of
+              R rocks -> collisionRock block id model
+              _ -> model
+      _ -> model
+
+collisionRock : Block -> ID -> Model -> Model
+collisionRock block id m =
+    let 
+        leftCorners =  findLeftCornersRock block
+        otherBlocks = Dict.values m.blocks
+        mCollidedBlock = List.foldl (collide block) Nothing otherBlocks
+
+    in
+        case mCollidedBlock of 
+          Just collidedBlock -> addRocks collidedBlock block m
+          _ -> m
+
+        
+addRocks : Block -> Block -> Model -> Model
+addRocks bigBlock rockBlock model =
+  let 
+      bigID = bigBlock.id
+      newBlock = {bigBlock | exp <- addRocksExp bigBlock.exp rockBlock.exp}
+  in
+      {model | blocks <- Dict.insert bigID newBlock model.blocks}
+
+      
+
+
+addRocksExp : Exp -> Exp -> Exp
+addRocksExp bigExp rockExp =
+  case bigExp of
+    H hof -> H (addRocksHOF hof rockExp )
+    RE oldRockExp ->
+      case oldRockExp of
+        Higher higherOrderFunc -> RE (Higher (addRocksHOF higherOrderFunc rockExp))
+
+
+addRocksHOF : HOF -> Exp -> HOF
+addRocksHOF bigHof rockExp =
+  let 
+      maybeRockExp mRockExp = 
+          case mRockExp of
+              Just oldRockExp -> 
+                  case oldRockExp of
+                    R rocks -> Just (R rocks)
+                    Higher hof -> Just (Higher (addRocksHOF hof rockExp))
+              Nothing -> 
+                case rockExp of
+                  RE r -> Just (r)
+
+  in
+      case bigHof of
+        Filter mFunc mRockExp -> Filter mFunc (maybeRockExp mRockExp)
+        Map mFunc mRockExp -> Filter mFunc (maybeRockExp mRockExp)
+
+
+collide : Block -> Block -> Maybe Block -> Maybe Block
+collide mainBlock otherBlock maybeCollidedBlock =
+  case maybeCollidedBlock of
+    Just collided -> maybeCollidedBlock
+    _ -> checkCollisionOnRock otherBlock mainBlock
+
+
+checkCollisionOnRock : Block -> Block -> Maybe Block
+checkCollisionOnRock blockOnLeft rockBlock =
+  let 
+      blockLeftsCorners = (Debug.watch "left corners" (findRightCorners blockOnLeft))
+      rockBlockCorners = (Debug.watch "right corners (rocks)" (findLeftCornersRock rockBlock))
+  in
+      if blockOnLeft.id == rockBlock.id then Nothing else 
+          if closeEnough blockLeftsCorners rockBlockCorners then Just blockOnLeft else Nothing
+
+
+
+--checkEachSide : Block -> ID -> Model -> Model 
+--checkEachSide block id m =
+--  let 
+--      rightCorners = findRightCorners block
+--  in
+--      if isRocks block then checkRightSide id rightCorners else 
+--          if not checkRightSide id rightCorners then checkLeftSide id (findLeftCorners block)
+
+
+
+--checkLeftSide : Block -> List Block -> Model -> Model
+--checkLeftSide block [] m = m
+--checkLeftSide block (x::xs) m =
+
 
 
 --checkLeftSide : Block -> Block -> Model -> (ID, Maybe Block)
@@ -93,16 +200,15 @@ collisionDetection block id model = model
 --        ) (Dict.values m.blocks)
 
 
---closeEnough : ((Int, Int), (Int, Int)) -> ((Int, Int), (Int, Int)) -> Bool
---closeEnough ((upX1, upY1), (downX1, downY1)) ((upX2, upY2), (downX2, downY))
-
---checkLeftSide : ((Int, Int) (Int, Int)) -> Block -> (ID, Maybe Block)
+closeEnough : ((Int, Int), (Int, Int)) -> ((Int, Int), (Int, Int)) -> Bool
+closeEnough ((upX1, upY1), (downX1, downY1)) ((upX2, upY2), (downX2, downY)) = True
+--checkLeftSide : ((Int, Int), (Int, Int)) -> Block -> (ID, Maybe Block)
 --checkLeftSide leftCorners block =
 --  let
 --      rightCorners = findRightCorners block
 
 
-findRightCorners : Block -> (((Int, Int), (Int, Int)), Exp)
+findRightCorners : Block -> ((Int, Int), (Int, Int))
 findRightCorners block =
   case block.exp of
     H hof -> findRightCornersHOF hof ((fst block.pos) + (hofWidth//2), (snd block.pos))
@@ -112,7 +218,7 @@ findRightCorners block =
           fh = funcHeight // 2
           (x, y) = (block.pos)
       in
-          (((x + fw, y + fh), (x + fw, y - fh)), F func)
+          ((x + fw, y + fh), (x + fw, y - fh))
     RE rockExp ->
       case rockExp of
         Higher hof -> findRightCornersHOF hof ((fst block.pos) + (hofWidth//2), (snd block.pos)) ------ this case should never happen
@@ -123,21 +229,21 @@ findRightCorners block =
               x = fst block.pos
               y = snd block.pos
           in
-              (((x + rw, y + rh), (x + rw, y - rh)), RE(R rocks))
+              ((x + rw, y + rh), (x + rw, y - rh))
 
 
-findRightCornersPos : Exp -> (Int, Int) -> (((Int, Int), (Int, Int)), Exp)
+findRightCornersPos : Exp -> (Int, Int) -> ((Int, Int), (Int, Int))
 findRightCornersPos exp (rXPos, rYPos) =
   case exp of
     H hof -> findRightCornersHOF hof (rXPos, rYPos)-- cant be a first one
     RE rockExp ->
       case rockExp of
-        Higher hof -> findRightCornersHOF hof ((rXPos +(hofWidth), rYPos))
-        R rocks -> (((rXPos + rockListWidth, rYPos + rockHeight),(rXPos + rockListWidth, rYPos - rockHeight)), RE (R rocks))
+        Higher hof -> findRightCornersHOF hof (rXPos +(hofWidth), rYPos)
+        R rocks -> ((rXPos + rockListWidth, rYPos + rockHeight), (rXPos + rockListWidth, rYPos - rockHeight))
 
 
 
-findRightCornersHOF : HOF -> (Int, Int) -> (((Int, Int), (Int, Int)), Exp)
+findRightCornersHOF : HOF -> (Int, Int) -> ((Int, Int), (Int, Int))
 findRightCornersHOF hof (rXPos, rYPos) =
   let 
       addX mRockExp =
@@ -145,30 +251,38 @@ findRightCornersHOF hof (rXPos, rYPos) =
           Just rockExp ->
             case rockExp of 
                 Higher hof -> findRightCornersHOF hof ((rXPos + hofWidth), rYPos)
-                R rocks -> (((rXPos + rockListWidth, rYPos + rockHeight), (rXPos + rockListWidth, rYPos - rockHeight)), RE(R rocks))
-          _ -> (((rXPos, rYPos + hofHeight), (rXPos, rYPos - hofHeight)), H hof)
+                R rocks -> ((rXPos + rockListWidth, rYPos + rockHeight), (rXPos + rockListWidth, rYPos - rockHeight))
+          _ -> ((rXPos, rYPos + hofHeight), (rXPos, rYPos - hofHeight))
   in
       case hof of
         Filter mFunc mRockExp -> addX mRockExp
         Map mFunc mRockExp -> addX mRockExp
 
 
-findLeftCorners : Block -> Bool -> ((Int, Int), (Int, Int))
-findLeftCorners block startsHOF =
+findLeftCornersRock : Block -> ((Int, Int), (Int, Int))
+findLeftCornersRock block  =
   let 
       (x, y) = block.pos
-      wOffset = if startsHOF then hofWidth//2 else rockListWidth//2
-      hOffset = if startsHOF then hofHeight//2 else rockHeight//2
+      wOffset = rockListWidth//2
+      hOffset = rockHeight//2
   in
       ((x - wOffset, y + hOffset), (x - wOffset, y - hOffset))
 
 
 
-startsWithHOF : Block -> Bool
-startsWithHOF block =
-  case block.exp of
-    H hof -> True
-    _ -> False
+--startsWithHOF : Block -> Bool
+--startsWithHOF block =
+--  case block.exp of
+--    H hof -> True
+--    _ -> False
+
+--isRocks : Block -> Bool
+--isRocks block =
+--  case block.exp of
+--    RE r -> case r of
+--            R rocks -> True
+--            _ -> False
+--    _ -> False
 
 
 -- - - - - - - - -  D R A G G I N G  - - - - - - - - - - 

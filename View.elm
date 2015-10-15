@@ -8,7 +8,7 @@ import Color exposing (Color, white, red)
 -- my modules
 import Constants exposing (..)
 import Model exposing (..)
-import SignalProcessing exposing(..)
+--import SignalProcessing exposing(..)
 import Drag exposing (makeHoverable)
 
 

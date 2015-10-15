@@ -22,7 +22,13 @@ import BlockMenu exposing (menuButtons)
 
 applyTypeface = typeface ["Courier New", "times new roman"]
 
+
+
+dummyBlocksSmall = Dict.insert 3 (dummyRockBlock 3 )(Dict.insert 2 (dummyMapAndRockBlock onlyFilterExp 2) (Dict.insert 1 (dummyMapAndRockBlock onlyMapExp 1) Dict.empty))
+
 dummyBlocksSmall2 = Dict.insert 2 (dummyMapAndRockBlock onlyFilterExp 2) (Dict.insert 1 (dummyMapAndRockBlock onlyMapExp 1) Dict.empty)
+
+
 
 dummyModelSmall2 = {nextID = 4, blocks = dummyBlocksSmall2}
 
@@ -30,7 +36,7 @@ dummyModelSmall2 = {nextID = 4, blocks = dummyBlocksSmall2}
 dummyBlocks = Dict.insert 4 (dummyMapAndRockBlock smallerExp 4) (Dict.insert 3 (dummyRockBlock 3) (Dict.insert 2 (dummyMapAndRockBlock smallExp 2) (Dict.insert 1 (dummyMapAndRockBlock bigExp 1) Dict.empty)))
 dummyModel2 = {nextID = 5, blocks = dummyBlocks}
 
-dummyModelSmall = {nextID = 3, blocks = dummyBlocksSmall2}
+dummyModelSmall = {nextID = 4, blocks = dummyBlocksSmall}
 
 onlyFilterExp = H (Filter Nothing Nothing)
 
@@ -104,7 +110,7 @@ view (w, h) m =
   let blockList = Dict.values m.blocks
   in
       collage w h
-      ( [centerBall] ++
+      ( 
         (displayForms blockList) ++ 
           (displayElements blockList) ++
          menuButtons
@@ -123,8 +129,8 @@ displayForms blocks =
     List.map (\f -> move (floatPos b.pos) f) b.forms) blocks
 
 
-main = Signal.map2 view Window.dimensions  foldModel
+main = Signal.map2 view Window.dimensions  (Debug.watch "model" <~ foldModel)
 
 foldModel : Signal Model 
-foldModel = Signal.foldp signalRouter dummyModelSmall2 allUpdateSignals
+foldModel = Signal.foldp signalRouter dummyModelSmall allUpdateSignals
 

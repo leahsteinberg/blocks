@@ -71,7 +71,38 @@ emptyMapBlock2 str col =
                     , exp = H (Map Nothing Nothing)
                     , forms = forms})
 
-menuData = [(emptyFilterBlock, "filter", bRed, 1), (emptyMapBlock, "map", bPurple, 2)]
+
+
+
+dummyRockList : List Rock
+dummyRockList = [
+  {value= 0, solid= True, color = red}
+  , {value = 1, solid = False, color = blue}
+  , {value = 2, solid = False, color = purple}
+  , {value = 3, solid = False, color = red}
+  , {value = 4, solid = False, color = purple}
+  , {value = 5, solid = True, color = blue}
+  , {value = 6, solid = False, color = red}
+  , {value = 7, solid = False, color = purple}
+  , {value = 8, solid = True, color = red}]
+
+
+emptyRocksBlock : String -> Color -> BlockTemplate
+emptyRocksBlock  str col =
+
+    (\id ->
+        let exp = RE (R dummyRockList)
+            (els, forms) = expToElsAndForms exp id
+        in
+              {id= id
+                , ele = els
+                , selected = False
+                , pos= (-(id *20), id*10)
+                , exp = exp
+                , forms = forms}
+                )
+
+menuData = [(emptyFilterBlock, "filter", bRed, 1), (emptyMapBlock, "map", bPurple, 2), (emptyRocksBlock, "rocks", bGreen, 3)]
 
 
 

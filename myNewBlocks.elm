@@ -17,17 +17,26 @@ import View exposing (..)
 import Constants exposing (..)
 import Model exposing (..)
 import SignalProcessing exposing (..)
+import Color exposing (red, black)
 import BlockMenu exposing (menuButtons)
+import ControlPanel exposing (evalButton)
 
 
 applyTypeface = typeface ["Courier New", "times new roman"]
 
 
+toRedFunc : Rock -> Rock
+toRedFunc rock =
+    {rock | color <- red}
 
-dummyBlocksSmall = Dict.insert 3 (dummyRockBlock 3 )(Dict.insert 2 (dummyMapAndRockBlock onlyFilterExp 2) (Dict.insert 1 (dummyMapAndRockBlock onlyMapExp 1) Dict.empty))
+
+
+
+dummyBlocksSmall = Dict.insert 3 (dummyRockBlock 3 )(Dict.insert 2 (dummyMapAndRockBlock onlyFilterExp 2) (Dict.insert 1 (dummyMapAndRockBlock onlyMapExpwFunc 1) Dict.empty))
 
 dummyBlocksSmall2 = Dict.insert 2 (dummyMapAndRockBlock onlyFilterExp 2) (Dict.insert 1 (dummyMapAndRockBlock onlyMapExp 1) Dict.empty)
 
+onlyMapExpwFunc = H (Map (Just (T toRedFunc)) Nothing)
 
 
 dummyModelSmall2 = {nextID = 4, blocks = dummyBlocksSmall2}
@@ -110,7 +119,7 @@ view (w, h) m =
   let blockList = Dict.values m.blocks
   in
       collage w h
-      ( 
+      ( evalButton::
         (displayForms blockList) ++ 
           (displayElements blockList) ++
          menuButtons

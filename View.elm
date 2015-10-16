@@ -3,7 +3,7 @@ import Graphics.Collage exposing (..)
 import Graphics.Element exposing (leftAligned, centered, color, size, Element, container, midRight)
 import Text exposing (fromString)
 import Graphics.Input exposing (customButton)
-import Color exposing (Color, white, red)
+import Color exposing (Color, white, red, black)
 
 -- my modules
 import Constants exposing (..)
@@ -12,8 +12,16 @@ import Model exposing (..)
 import Drag exposing (makeHoverable)
 
 
+genericRock : Rock
+genericRock = {value= 0, solid= True, color= black }  
 
-
+arrowForm : Form
+arrowForm = 
+  let 
+      segments =[segment (-30, 0) (20, 0), segment (-30, 0) (-15, 10), segment (-30, 0) (-15, -10)]
+  in
+      List.map (traced (dashedLineStyle white)) segments
+          |> group
 
 -- - - - - - - - -  N E W  -  S T U F F - - - - - - - - 
 
@@ -62,7 +70,7 @@ hofAttachments mFunc mRE id col xShift =
   let 
       funcElements = 
         case mFunc of
-          Just func -> ([funcToElement func id], [])
+          Just func -> ([funcToElement func id xShift], [])
           Nothing -> ([emptyFunc col id xShift], [])
 
       rockExpElements =
@@ -74,13 +82,36 @@ hofAttachments mFunc mRE id col xShift =
       ((fst funcElements) ++ (fst rockExpElements), (snd funcElements) ++ (snd rockExpElements))
       
 
-funcToElement : Func -> ID -> Form
-funcToElement func id =
-  (leftAligned (applyStyle (fromString "filled func")))
-                      |> color bGreen
-                      |> size funcWidth funcHeight
-                      |> makeHoverable id
-                      |> toForm
+funcToElement : Func -> ID -> Int -> Form
+funcToElement func id xShift =
+  let
+      viewFunc = 
+        case func of
+          T transform -> viewTransform transform
+  in
+      (viewFunc genericRock)
+            |> makeHoverable id
+            |> toForm
+            |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth )) + 35)
+          
+
+
+
+  --(leftAligned (applySmallStyle (fromString "filled func")))
+  --                    |> color bGreen
+  --                    |> size funcWidth funcHeight
+  --                    |> makeHoverable id
+  --                    |> toForm
+  --                    |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth )) + 35)
+
+viewTransform : (Rock -> Rock) -> Rock -> Element
+viewTransform func rock =
+  let 
+      whiteSquare = rect (rockWidth + 10 ) (rockWidth+10)
+                      |> outlined (dashedLineStyle white)
+      whiteArrow = arrowForm
+  in
+      collage (rockWidth+50) (rockHeight+15) [arrowForm, (viewRock (func rock))]
 
 
 
@@ -92,12 +123,10 @@ emptyFunc col id xShift =
                         |> size funcWidth funcHeight
                         |> makeHoverable id
                         |> toForm
-                        |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth )) + 35)
+                        |> moveX  (((hofWidth/2) + 40) + (toFloat (xShift * (hofWidth +10))))
 
 
-
-
--- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+-- - - - - - - - - - - - E N D S - - - - - - - - - - - - - - - - - -
 
 addRightConcave : Color -> Int -> Int -> Int -> Form
 addRightConcave col xShift width height =
@@ -137,9 +166,6 @@ addLeftConvex col xShift width height isRocks =
                         |> filled col
                         |> moveX offset    
 
-
-
--- - - - - - - - -  A  P  I  - - - - - - - - - - - - - - - 
 
 endForms col xShift = [addLeftConvex col xShift hofWidth hofHeight False, addRightConcave col xShift hofWidth hofHeight]
 

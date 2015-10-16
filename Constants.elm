@@ -1,6 +1,6 @@
 module Constants where
 
-import Color exposing (rgb)
+import Color exposing (rgb, red)
 import Text exposing (style)
 import Graphics.Collage exposing (defaultLine)
 
@@ -20,6 +20,9 @@ bBlue = rgb 66 233 233
 bGreen = rgb 66 233 150
 bRed = rgb 231 162 233
 bPurple = rgb 207 169 213
+
+filterColor = bRed
+mapColor = bPurple
 
 
 applyStyle =style {
@@ -45,5 +48,9 @@ floatPos pos = (toFloat (fst pos), toFloat (snd pos))
 
 lineStyle col = {defaultLine
                 | color <- col, width <- 10.0}
+
+dashedLineStyle col = {defaultLine
+                        | color <- col, width <- 2.5, dashing <- [5, 3]}
+
 
     

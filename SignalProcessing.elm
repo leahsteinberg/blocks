@@ -21,6 +21,9 @@ blockTransform : Signal.Mailbox BlockAction
 blockTransform = Signal.mailbox None
 
 
+evalMailbox = mailbox True
+
+
 -- - - - -  R O U T I N G - A C T I O N S  - - - - -
 
 fromBlockAction : BlockAction -> Action
@@ -64,8 +67,8 @@ updateBlock : BlockAction -> Model -> Model
 updateBlock action m = 
     case action of
         Add blockTemp -> {m | 
-            blocks <- insert m.nextID (blockTemp m.nextID) m.blocks
-            , nextID <- m.nextID + 1}
+                          blocks <- insert m.nextID (blockTemp m.nextID) m.blocks
+                          , nextID <- m.nextID + 1}
         _ -> m
 
 
@@ -83,43 +86,6 @@ dragBlock mBlock position =
   case mBlock of
     Just block -> {block | pos <- moveBy position block.pos}
 
---moveBy : (Int, Int) -> (Int, Int) -> (Int, Int)
---moveForest : ID -> Model.Position -> List Exp -> List Exp -> List Exp
---moveForest id pos forest1 forest2 =
---  case forest1 of
---    [] -> forest2
---    (x::xs) ->
---        let (changed, newExp) = moveExp x id pos
---        in 
---            if changed then newExp :: (xs ++ forest2) else moveForest id pos xs (newExp :: forest2)
-
-    
-
-
---moveExp : Exp -> ID -> Model.Position -> (Bool, Exp)
---moveExp exp id pos = 
---    case exp of
---        H hof -> moveHOF hof id pos
-----        F func -> moveFunc func id
-----        R rocks -> moveRocks rocks
-
---moveHOF : HOF -> ID -> Model.Position -> (Bool, Exp)
---moveHOF hof id pos =
---  case hof of
---    Filter block mF mR -> 
---      let (changed, newBlock) = moveBlock block id pos
---      in 
---          (changed, H (Filter newBlock mF mR))
-
---    Map block mF mR -> 
---      let (changed, newBlock) = moveBlock block id pos
---      in
---          (changed, H (Map newBlock mF mR))
-
-
---moveBlock : Block -> ID -> Model.Position -> (Bool, Block)
---moveBlock block id pos =
---    if block.id == id then (True, {block | pos <- moveBy pos block.pos}) else (False, block)
 
 moveBy : (Int, Int) -> (Int, Int) -> (Int, Int)
 moveBy (dx, dy) (x, y) = (x + dx, y - dy)

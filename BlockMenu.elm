@@ -9,9 +9,11 @@ import Signal exposing (message)
 
 import Model exposing (..)
 --import Draggable exposing (..)
-import View exposing (expToElsAndForms, endForms)
+import ViewFragment exposing (fragmentToForms)
+--import View exposing (fragmentToForms, endForms)
 import Constants exposing (..)
 import SignalProcessing exposing (..)
+import Debug
 
 menuBackground : Form
 menuBackground = rect 100 600
@@ -20,55 +22,45 @@ menuBackground = rect 100 600
 
 
 
-makeMenuButtonCustom  : BlockTemplate -> String -> Color -> Int -> Form
-makeMenuButtonCustom blockTemplate str col i =
+makeMenuButtonCustom  : BlockTemplate -> String -> Color -> Int -> Int -> Form
+makeMenuButtonCustom blockTemplate str col i width =
   let 
       buttonBackground = (color col (centered (fromString str)))
+      xValue =  -((toFloat width)/2 - 30)
   in
       customButton (Signal.message blockTransform.address (Add blockTemplate))
           buttonBackground buttonBackground buttonBackground
             |> toForm
-            |> move (-500, 300 / 10 * (toFloat i))
+            |> move (xValue, 300 / 10 * (toFloat i))
 
 
 
 emptyFilterBlock : String -> Color -> BlockTemplate
 emptyFilterBlock str col = 
     (\id -> 
-        let 
-                (els, forms) =expToElsAndForms (H (Filter Nothing Nothing)) id
+        let     
+                fragment = (H (Filter Nothing Nothing))
+                (els, forms) = fragmentToForms fragment id
         in 
                 {id = id
                     , selected = False
                     , pos = (-100, -100)
                     , ele = els
-                    , exp = H (Filter Nothing Nothing)
+                    , exp = fragment
                     , forms = forms})
                                 
 emptyMapBlock : String -> Color -> BlockTemplate
 emptyMapBlock str col = 
     (\id -> 
         let 
-                (els, forms) = expToElsAndForms (H (Map Nothing Nothing)) id
+                fragment = (H (Map Nothing Nothing))
+                (els, forms) = fragmentToForms fragment id
         in 
                 {id = id
                     , selected = False
                     , pos = (-200, -200)
                     , ele = els
-                    , exp = H (Map Nothing Nothing)
-                    , forms = forms})
-
-emptyMapBlock2 : String -> Color -> BlockTemplate
-emptyMapBlock2 str col = 
-    (\id -> 
-        let 
-                (els, forms) =expToElsAndForms (H (Map Nothing Nothing)) id
-        in 
-                {id = id
-                    , selected = False
-                    , pos = (200, 200)
-                    , ele = els
-                    , exp = H (Map Nothing Nothing)
+                    , exp = fragment
                     , forms = forms})
 
 
@@ -91,14 +83,14 @@ emptyRocksBlock : String -> Color -> BlockTemplate
 emptyRocksBlock  str col =
 
     (\id ->
-        let exp = RE (R dummyRockList)
-            (els, forms) = expToElsAndForms exp id
+        let fragment = E (R dummyRockList)
+            (els, forms) = fragmentToForms fragment id
         in
               {id= id
                 , ele = els
                 , selected = False
                 , pos= (-(id *20), id*10)
-                , exp = exp
+                , exp = fragment
                 , forms = forms}
                 )
 
@@ -106,12 +98,12 @@ menuData = [(emptyFilterBlock, "filter", bRed, 1), (emptyMapBlock, "map", bPurpl
 
 
 
-makeMenuButton : BlockTemplate -> String -> Color -> Int -> Form
-makeMenuButton blockTemp str col i = 
-    makeMenuButtonCustom blockTemp str col i
+makeMenuButton : BlockTemplate -> String -> Color -> Int -> Int -> Form
+makeMenuButton blockTemp str col i width = 
+    makeMenuButtonCustom blockTemp str col i width
 
-menuButtons : List Form
-menuButtons = List.map (\(blockTemp, str, col, i) -> makeMenuButton (blockTemp str col) str col i) menuData
+menuButtons : Int -> List Form
+menuButtons width = List.map (\(blockTemp, str, col, i) -> makeMenuButton (blockTemp str col) str col i width) menuData
     
 
 

@@ -9,7 +9,7 @@ import Dict exposing (insert)
 -- mine
 import Model exposing (..)
 import Drag exposing (dragSignal)
-import View exposing (expToElsAndForms)
+--import View exposing (expToElsAndForms)
 import SnapBlocks exposing (checkCombine)
 
 
@@ -60,7 +60,8 @@ updateDrag : DragAction  -> Model -> Model
 updateDrag drag m = 
         case drag of
           MoveBy (id, dx, dy) -> doDrag m id (dx, dy)
-          Release id -> checkCombine m id 
+          Release id -> m
+-------checkCombine m id 
           _ -> m
 
 updateBlock : BlockAction -> Model -> Model

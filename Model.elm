@@ -9,50 +9,41 @@ import Dict exposing (Dict)
 
 type alias Model = {nextID: ID, blocks: Dict ID Block}
 
---type Exp =  H HOF 
---            | RE RockExpression
---            | F Func
+-- not composable
+type Fragment = E Exp | F Func | H HOF
 
---type RockExpression = Higher HOF | R Rocks
-
---type HOF =  Filter (Maybe Func) (Maybe RockExpression) 
---            | Map (Maybe Func) (Maybe RockExpression)
-
---type Func = P (Rock -> Bool) | T (Rock -> Rock)
+-- composable
+type Exp = C HOF Exp
+            | R Rocks
 
 
+type HOF = Filter (Maybe Func) (Maybe Rocks) | Map (Maybe Func) (Maybe Rocks)
 
-type Exp =  H HOF 
-            | RE RockExpression
-            | F Func
 
-type RockExpression = Higher HOF | R Rocks
-
-type HOF =  Filter (Maybe Func) (Maybe RockExpression) 
-            | Map (Maybe Func) (Maybe RockExpression)
-
-type Func = P Pred | T Transform | A Accum
-
---type RockFunc =  | (Rock -> Rock)
-
---type alias FuncInfo = {name: String
---            , func: RockFunc}
-
---type alias Transform = {name: String
---                , func: RockFunc}
-
-type alias Block = {id: ID
-                    , ele: List Form
-                    , selected: Bool
-                    , pos: (Int, Int)
-                    , exp: Exp
-                    , forms: List Form}
 
 type alias Rocks = List Rock
 
 type alias Rock = {value: Int
             , solid: Bool
             , color: Color}
+
+
+type Func  = P Pred | T Transform | A Accum 
+
+type alias Pred = (Rock -> Bool)
+
+type alias Transform = (Rock -> Rock)
+
+type alias Accum = (Rock -> Rocks -> Rocks)
+
+type alias Block = {id: ID
+                    , ele: List Form
+                    , selected: Bool
+                    , pos: (Int, Int)
+                    , exp: Fragment
+                    , forms: List Form}
+
+
 
 type Action = DAction DragAction | BAction BlockAction
 
@@ -65,9 +56,4 @@ type alias Position = (Int, Int)
 type alias ID = Int
 
 type alias BlockTemplate = ID -> Block
-
-
-
-
-
 

@@ -60,8 +60,7 @@ updateDrag : DragAction  -> Model -> Model
 updateDrag drag m = 
         case drag of
           MoveBy (id, dx, dy) -> doDrag m id (dx, dy)
-          Release id -> m
--------checkCombine m id 
+          Release id -> checkCombine m id 
           _ -> m
 
 updateBlock : BlockAction -> Model -> Model

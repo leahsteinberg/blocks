@@ -126,7 +126,7 @@ view (w, h) m =
   let blockList = Dict.values m.blocks
   in
       collage w h
-      ( evalButton::
+      ( centerBall :: evalButton::
         (displayForms blockList) ++ 
           (displayElements blockList) ++
          (menuButtons w)

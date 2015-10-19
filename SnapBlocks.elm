@@ -1,44 +1,147 @@
 module SnapBlocks where
 
  
---import Dict
---import Debug
-
---import Model exposing (..)
---import Constants exposing (..)
---import ViewFragment exposing (fragmentToForms)
-
-checkCombine m id = m
-
---checkCombine : Model -> ID -> Model
---checkCombine m id =
---  let
---      mBlock = Dict.get id m.blocks
---  in 
---      case mBlock of 
---        Just block -> collisionDetection block id m
---        Nothing -> m
-
---collisionDetection : Block -> ID -> Model -> Model
---collisionDetection block id model = 
---  case block.exp of
---      H hof -> collisionHOF block id model
---      RE rockExp ->
---          case rockExp of
---              R rocks -> collisionRock block id model
---              _ -> model
---      _ -> model
-
-
---collide :(Block -> Block -> Maybe Block) -> Block -> Block -> Maybe Block -> Maybe Block
---collide collisionChecker mainBlock otherBlock maybeCollidedBlock =
---  case maybeCollidedBlock of
---    Just collided -> maybeCollidedBlock
---    _ -> collisionChecker mainBlock otherBlock
+import Dict
+import Debug
+import Model exposing (..)
+import Constants exposing (..)
+import ViewFragment exposing (fragmentToForms)
 
 
 
------ TO DO TODO make this work!!!
+checkCombine : Model -> ID -> Model
+checkCombine m id =
+  let
+      mBlock = Dict.get id m.blocks
+  in 
+      case mBlock of 
+        Just block -> collisionDetection block id m
+        Nothing -> m
+
+collisionDetection : Block -> ID -> Model -> Model
+collisionDetection block id model = 
+  case block.exp of
+    E exp -> collisionExp block id model
+    H hof -> model
+--collisionHOF block id model
+
+collisionExp : Block -> ID -> Model -> Model
+collisionExp block id model =
+  let
+      expLeftCorners = (Debug.watch "exp left" (findLeftCornersExp block))
+      otherBlocks = Dict.values model.blocks
+      mCollidedBlock = List.foldl (collide (checkExpCollisions expLeftCorners id)) Nothing otherBlocks
+  in
+      case mCollidedBlock of
+        Just collidedBlock -> combineBlocks addExp collidedBlock block model
+        _ -> model
+
+
+collide : (Block -> Maybe Block) -> Block -> Maybe Block -> Maybe Block
+collide collisionChecker otherBlock maybeCollidedBlock =
+  case maybeCollidedBlock of
+    Just collided -> maybeCollidedBlock
+    _ -> collisionChecker otherBlock
+
+
+
+
+checkExpCollisions : ((Int, Int), (Int, Int)) -> ID -> Block -> Maybe Block
+checkExpCollisions leftCorners id otherBlock =
+  case otherBlock.exp of
+    H hof -> if closeEnoughOnLeft leftCorners otherBlock then Just otherBlock else Nothing
+    _ -> Nothing
+
+
+closeEnough : ((Int, Int), (Int, Int)) -> ((Int, Int), (Int, Int)) -> Bool
+closeEnough ((upX1, upY1), (downX1, downY1)) ((upX2, upY2), (downX2, downY2)) =
+  let 
+      xUpDistance = abs (upX1 - upX2)
+      xDownDistance = abs (downX1 - downX2)
+      yUpDistance = abs (upY1 - upY2)
+      yDownDistance = abs (downY1 - downY2)
+      combined = xUpDistance + yUpDistance + xDownDistance + yDownDistance
+  in
+      combined < 90
+
+
+
+closeEnoughOnLeft : ((Int, Int), (Int, Int)) -> Block -> Bool
+closeEnoughOnLeft leftCorners otherBlock =
+  let
+      hofRightCorners = (Debug.watch "right corner" (getHOFRightCorners otherBlock))
+  in 
+      closeEnough leftCorners hofRightCorners
+
+
+getHOFRightCorners : Block -> ((Int, Int), (Int, Int))
+getHOFRightCorners block =
+  let
+      (x, y) = block.pos
+      halfHeight = hofHeight//2
+      halfWidth = hofWidth//2
+  in
+      ((x + hofWidth, y + halfHeight), (x + hofWidth, y - halfHeight))
+
+
+findLeftCornersExp : Block -> ((Int, Int), (Int, Int))
+findLeftCornersExp block =
+  case block.exp of
+    E exp -> 
+        case exp of
+            C hof exp -> findLeftCornersComposedExp block
+            R rocks -> findLeftCornersRock block
+
+
+findLeftCornersRock : Block -> ((Int, Int), (Int, Int))
+findLeftCornersRock block = 
+  let 
+      (x, y) = block.pos
+      halfWidth = rockListWidth // 2 //2
+      halfHeight = hofHeight // 2
+  in
+      ((x - 25 , y + halfHeight), (x - 25, y - halfHeight))
+
+
+
+
+findLeftCornersComposedExp : Block -> ((Int, Int), (Int, Int))
+findLeftCornersComposedExp block =
+  let 
+      (x, y) = block.pos
+      halfWidth = hofWidth // 2
+      halfHeight = hofHeight // 2
+  in
+      ((x , y + halfHeight), (x , y - halfHeight))
+
+
+
+combineBlocks : (Fragment -> Fragment -> Fragment) -> Block -> Block -> Model -> Model
+combineBlocks combiner big little model = 
+  let
+      bigID = big.id
+      newFragment = combiner big.exp little.exp
+      (newEls, newForms) = fragmentToForms newFragment bigID
+      newBlock = {big | exp <- newFragment
+                        , ele <- newEls
+                        , forms <- newForms }
+      newDict = Dict.remove little.id (Dict.insert bigID newBlock model.blocks)
+  in
+      {model | blocks <- newDict}
+
+addExp : Fragment -> Fragment -> Fragment
+addExp bigFragmentHOF littleFragmentExp =
+  let
+      bigHOF = case bigFragmentHOF of
+                  H hof -> hof
+
+      littleExp = case littleFragmentExp of
+                              E exp -> exp
+  in
+      E (C bigHOF littleExp)
+
+
+---- TO DO TODO make this work!!!
 --collisionHOF : Block -> ID -> Model -> Model
 --collisionHOF block id model =
 --  let 
@@ -135,7 +238,7 @@ checkCombine m id = m
 --          ((x + fw, y + fh), (x + fw, y - fh))
 --    RE rockExp ->
 --      case rockExp of
---        Higher hof -> findRightCornersHOF hof ((fst block.pos) + (hofWidth), (snd block.pos)) ------ this case should never happen
+--        Higher hof -> findRightCornersHOF hof ((fst block.pos) + (hofWidth), (snd block.pos))  this case should never happen
 --        R rocks -> 
 --          let 
 --              rw = rockListWidth // 2
@@ -150,7 +253,7 @@ checkCombine m id = m
 --findRightCornersPos : Exp -> (Int, Int) -> ((Int, Int), (Int, Int))
 --findRightCornersPos exp (rXPos, rYPos) =
 --  case exp of
---    H hof -> findRightCornersHOF hof (rXPos, rYPos)-- cant be a first one
+--    H hof -> findRightCornersHOF hof (rXPos, rYPos) cant be a first one
 --    RE rockExp ->
 --      case rockExp of
 --        Higher hof -> findRightCornersHOF hof (rXPos +(hofWidth), rYPos)
@@ -167,7 +270,7 @@ checkCombine m id = m
 --            case rockExp of 
 --                Higher hof -> findRightCornersHOF hof ((rXPos + hofWidth), rYPos)
 --                R rocks -> ((100000,100000), (100000,1000000))
-----                  --((rXPos + rockListWidth, rYPos + rockHeight), (rXPos + rockListWidth, rYPos - rockHeight))
+--                  ((rXPos + rockListWidth, rYPos + rockHeight), (rXPos + rockListWidth, rYPos - rockHeight))
 --          Nothing ->  ((rXPos, rYPos + hofHeight//2), (rXPos, rYPos - hofHeight//2))
 --  in
 --      case hof of
@@ -183,12 +286,14 @@ checkCombine m id = m
 --      hOffset = rockHeight//2
 --  in
 --      ((x-26, y + hOffset), (x-26, y - hOffset))
---      --((x - wOffset, y + hOffset), (x - wOffset, y - hOffset))
+--      ((x - wOffset, y + hOffset), (x - wOffset, y - hOffset))
 
 
 
 
----- - - - -  A D D - B L O C K S - P O S T - C O L L I S I O N - - - -----
+
+
+-- - - - -  A D D - B L O C K S - P O S T - C O L L I S I O N - - - -
 
 --addHOF : Block -> Block -> Model -> Model
 --addHOF big little model =

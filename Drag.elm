@@ -23,7 +23,7 @@ makeHoverable id e = Graphics.Input.hoverable (Signal.message hover.address << \
 dragSignal : Signal DragAction
 dragSignal =
   let 
-      maybeDrag = Signal.map2 createDrag  hover.signal mouseEvents
+      maybeDrag = Signal.map2 createDrag (Debug.watch "hover signal" <~  hover.signal ) mouseEvents
       justDrags = Signal.filter isJustAction (Just Lift) maybeDrag 
       drags = Signal.map fromJust justDrags
   in

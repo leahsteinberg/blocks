@@ -40,7 +40,7 @@ expToForms exp id xShift =
                 hofForms = getHofForms hof
                 expForms = getExpForms compExp
             in 
-                (fst hofForms ++ fst expForms, snd hofForms ++ fst expForms)
+                (fst hofForms ++ fst expForms, snd hofForms ++ snd expForms)
     in
 
         case exp of
@@ -106,7 +106,7 @@ viewFunc func id xShift =
       makeFunc = (funcElement genericRock)
             |> makeHoverable id
             |> toForm
-            |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth)) + 35)
+--            |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth)) + 35)
   in
     ([makeFunc], [])
 
@@ -119,7 +119,7 @@ viewTransform func rock =
                       |> outlined (dashedLineStyle white)
       whiteArrow = arrowForm
   in
-      collage (rockWidth+50) (rockHeight+15) [arrowForm, (viewRock (func rock))]
+      collage (rockWidth+50) (rockHeight+15) [(viewRock (func rock))]
 
 
 
@@ -134,7 +134,7 @@ addRightConcave col xShift width height =
       offset = (toFloat (xShift* (hofWidth + blockOffset)) + (hofWidth/2))
   in polygon [(fw-1, fh)
                       , (fw + 9, fh )
-                      , (fw + 9, fh/2)
+                      , (fw + 9, fh/2 )
                       , (fw + 4,  fh/2)
                       , (fw + 4, -(fh/2))
                       , ( fw + 9, -(fh/2))
@@ -160,8 +160,8 @@ addLeftConvex col xShift width height isRocks =
                     ,(-fw-10+1, -(fh/2))
                     ,(-fw-5+1, -(fh/2))
                     ,(-fw-5+1, -fh)
-                    ,(-fw+1, -fh )
-                    ,(-fw+1, -fh) ]
+                    ,(-fw+1, -fh  )
+                    ,(-fw+1, -fh ) ]
                         |> filled col
                         |> moveX offset    
 

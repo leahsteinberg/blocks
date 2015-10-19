@@ -63,6 +63,30 @@ emptyMapBlock str col =
                     , exp = fragment
                     , forms = forms})
 
+transformRedBlock : Fragment
+transformRedBlock = 
+      F (T toRedFunc) 
+
+
+toRedFunc : Rock -> Rock
+toRedFunc rock =
+    {rock | color <- red}
+
+
+emptyTransformRedBlock : String -> Color -> BlockTemplate
+emptyTransformRedBlock str col =
+  (\id ->
+    let
+        fragment = transformRedBlock
+        (els, forms)  = fragmentToForms transformRedBlock id
+    in
+                  {id= id
+                , ele = els
+                , selected = False
+                , pos= (-(id *30), id*10)
+                , exp = fragment
+                , forms = forms}
+            )
 
 
 
@@ -94,7 +118,7 @@ emptyRocksBlock  str col =
                 , forms = forms}
                 )
 
-menuData = [(emptyFilterBlock, "filter", bRed, 1), (emptyMapBlock, "map", bPurple, 2), (emptyRocksBlock, "rocks", bGreen, 3)]
+menuData = [(emptyFilterBlock, "filter", bRed, 1), (emptyMapBlock, "map", bPurple, 2), (emptyRocksBlock, "rocks", bGreen, 3), (emptyTransformRedBlock, "red", bGreen, 4)]
 
 
 

@@ -22,8 +22,19 @@ collisionDetection : Block -> ID -> Model -> Model
 collisionDetection block id model = 
   case block.exp of
     E exp -> collisionExp block id model
-    H hof -> model
---collisionHOF block id model
+    H hof -> collisionHOF block id model
+
+
+collisionHOF : Block -> ID -> Model -> Model
+collisionHOF block id model =
+  let
+      hofRightCorners = getHOFRightCorners block
+      otherBlocks = Dict.values model.blocks
+      mCollidedBlock = List.foldl (collide (checkHOFCollisions hofRightCorners id)) Nothing otherBlocks
+  in
+      case mCollidedBlock of
+        Just collidedBlock -> combineBlocks addExp block collidedBlock model
+        _ -> model
 
 collisionExp : Block -> ID -> Model -> Model
 collisionExp block id model =
@@ -45,6 +56,12 @@ collide collisionChecker otherBlock maybeCollidedBlock =
 
 
 
+checkHOFCollisions : ((Int, Int), (Int, Int)) -> ID -> Block -> Maybe Block
+checkHOFCollisions hofRightCorners id otherBlock =
+  case otherBlock.exp of
+    E exp -> if closeEnoughOnRight hofRightCorners otherBlock then Just otherBlock else Nothing
+    _ -> Nothing
+
 
 checkExpCollisions : ((Int, Int), (Int, Int)) -> ID -> Block -> Maybe Block
 checkExpCollisions leftCorners id otherBlock =
@@ -64,6 +81,12 @@ closeEnough ((upX1, upY1), (downX1, downY1)) ((upX2, upY2), (downX2, downY2)) =
   in
       combined < 90
 
+closeEnoughOnRight : ((Int, Int), (Int, Int)) -> Block -> Bool
+closeEnoughOnRight rightCorners otherBlock =
+  let
+      expLeftCorners = findLeftCornersExp otherBlock
+  in
+      closeEnough expLeftCorners rightCorners
 
 
 closeEnoughOnLeft : ((Int, Int), (Int, Int)) -> Block -> Bool
@@ -103,8 +126,6 @@ findLeftCornersRock block =
       ((x - 25 , y + halfHeight), (x - 25, y - halfHeight))
 
 
-
-
 findLeftCornersComposedExp : Block -> ((Int, Int), (Int, Int))
 findLeftCornersComposedExp block =
   let 
@@ -113,7 +134,6 @@ findLeftCornersComposedExp block =
       halfHeight = hofHeight // 2
   in
       ((x , y + halfHeight), (x , y - halfHeight))
-
 
 
 combineBlocks : (Fragment -> Fragment -> Fragment) -> Block -> Block -> Model -> Model

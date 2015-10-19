@@ -145,7 +145,7 @@ displayForms blocks =
     List.map (\f -> move (floatPos b.pos) f) b.forms) blocks
 
 
-main = Signal.map2 view Window.dimensions  (Debug.watch "model" <~ foldModel)
+main = Signal.map2 view Window.dimensions foldModel
 
 foldModel : Signal Model 
 foldModel = Signal.foldp signalRouter emptyModel allUpdateSignals

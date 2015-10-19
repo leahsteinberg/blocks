@@ -10,8 +10,6 @@ import View exposing (expToElsAndForms)
 
 
 
-
-
 checkCombine : Model -> ID -> Model
 checkCombine m id =
   let

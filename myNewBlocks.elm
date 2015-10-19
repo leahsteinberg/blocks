@@ -113,6 +113,8 @@ centerBall = circle 10.0
               |> filled  purple
               |> move (0,0)
 
+
+
 view : (Int, Int) -> Model -> Element
 view (w, h) m =
 

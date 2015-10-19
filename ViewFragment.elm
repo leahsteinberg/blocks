@@ -1,5 +1,14 @@
+model ViewFragment whiteSquare
+
+import Graphics.Element exposing (leftAligned, centered, color, size, Element, container, midRight)
+import Text exposing (fromString)
+import Graphics.Input exposing (customButton)
+import Color exposing (Color, white, red, black)
+
 import Model exposing (..)
 import Constants exposing (..)
+
+import Drag exposing (makeHoverable)
 
 fragmentToForms : Fragment -> ID -> (List Form, List Form)
 fragmentToForms fragment id = frToFormsShift fragment id 0
@@ -80,8 +89,31 @@ viewEmptyFunc id xShift =
         ([el], [])
 
 
+
 viewFunc : Func -> ID -> Int -> (List Form, List Form)
-viewFunc func id xShift = ([], [])
+viewFunc func id xShift =
+  let
+      funcElement = 
+        case func of
+          T transform -> viewTransform transform
+
+      makeFunc = (funcElement genericRock)
+            |> makeHoverable id
+            |> toForm
+            |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth )) + 35)
+  in
+    (makeFunc, [])
+
+
+
+viewTransform : (Rock -> Rock) -> Rock -> Element
+viewTransform func rock =
+  let 
+      whiteSquare = rect (rockWidth + 10 ) (rockWidth+10)
+                      |> outlined (dashedLineStyle white)
+      whiteArrow = arrowForm
+  in
+      collage (rockWidth+50) (rockHeight+15) [arrowForm, (viewRock (func rock))]
 
 
 
@@ -131,5 +163,51 @@ addLeftConvex col xShift width height isRocks =
 endForms col xShift = [addLeftConvex col xShift hofWidth hofHeight False, addRightConcave col xShift hofWidth hofHeight]
 
 
+-- - - - - - - - -  R O C K S - - - - - - - - - - 
+
+viewRocks : Rocks -> ID -> Int -> (List Form, List Form)
+viewRocks rocks id xShift = 
+  let 
+      newRock rock i = viewRock rock
+                        |> moveX ((i * rockWidth) - rockListWidth/2 + (rockWidth/2) + 5)
+      addRock rock (rList, i) = ((newRock rock i) :: rList, i + 1)
+      rockOffset = 0
+
+
+      rocksForm rocks = (List.foldl addRock ([], 0) rocks)
+                              |> fst
+                              
+                              
+      background = rect (rockListWidth-3) (rockHeight-3)
+                        |> outlined (solid bGreen)
+
+      rockElement = collage (rockListWidth) rockHeight ([background] ++ rocksForm rocks)
+                            
+      shift = if xShift == 0 then ((hofWidth/2) + (toFloat ((xShift)  * (hofWidth + blockOffset))))
+        else (toFloat (xShift)  * (hofWidth + blockOffset) + (rockListWidth/2))
+      rockForm = rockElement
+                            |> makeHoverable id
+                            |> toForm
+                            |> moveX shift
+
+  in
+      ([rockForm], [addLeftConvex bGreen xShift rockListWidth hofHeight True])
+
+viewRock : Rock -> Form
+viewRock rock =
+  let shape = rockShape rock
+      paint = if rock.solid 
+        then filled rock.color 
+        else outlined (solid rock.color)
+  in
+      paint shape
+
+
+rockShape : Rock -> Shape
+rockShape rock =
+  if| rock.value == 0 -> circle 10.0
+    | rock.value == 1 -> rect 3.0 29.0
+    | rock.value == 2 -> ngon 3 20
+    | otherwise -> ngon rock.value 15.0
 
 

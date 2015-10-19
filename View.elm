@@ -93,16 +93,7 @@ funcToElement func id xShift =
             |> makeHoverable id
             |> toForm
             |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth )) + 35)
-          
 
-
-
-  --(leftAligned (applySmallStyle (fromString "filled func")))
-  --                    |> color bGreen
-  --                    |> size funcWidth funcHeight
-  --                    |> makeHoverable id
-  --                    |> toForm
-  --                    |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth )) + 35)
 
 viewTransform : (Rock -> Rock) -> Rock -> Element
 viewTransform func rock =

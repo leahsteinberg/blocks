@@ -9,18 +9,6 @@ import Dict exposing (Dict)
 
 type alias Model = {nextID: ID, blocks: Dict ID Block}
 
--- not composable
-type Fragment = E Exp | F Func | H HOF
-
--- composable
-type Exp = C HOF Exp
-            | R Rocks
-
-
-type HOF = Filter (Maybe (Fun Func)) (Maybe (RV Rocks)) | Map (Maybe (Fun Func)) (Maybe (RV Rocks))
-
-type Value = Rocks | Rock
-
 --type Exp =  H HOF 
 --            | RE RockExpression
 --            | F Func
@@ -30,16 +18,21 @@ type Value = Rocks | Rock
 --type HOF =  Filter (Maybe Func) (Maybe RockExpression) 
 --            | Map (Maybe Func) (Maybe RockExpression)
 
+--type Func = P (Rock -> Bool) | T (Rock -> Rock)
+
+
+
+type Exp =  H HOF 
+            | RE RockExpression
+            | F Func
+
+type RockExpression = Higher HOF | R Rocks
+
+type HOF =  Filter (Maybe Func) (Maybe RockExpression) 
+            | Map (Maybe Func) (Maybe RockExpression)
+
 type Func = P Pred | T Transform | A Accum
 
-type Pred = (Rock -> Bool)
-
-type Transform = (Rock -> Rock)
-
-type Accum = (Rock -> a -> a)
-
-
---type CornerAction = ((Int, Int), (Int, Int))
 --type RockFunc =  | (Rock -> Rock)
 
 --type alias FuncInfo = {name: String
@@ -55,9 +48,11 @@ type alias Block = {id: ID
                     , exp: Exp
                     , forms: List Form}
 
+type alias Rocks = List Rock
 
-
-
+type alias Rock = {value: Int
+            , solid: Bool
+            , color: Color}
 
 type Action = DAction DragAction | BAction BlockAction
 

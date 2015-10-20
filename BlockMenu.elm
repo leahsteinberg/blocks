@@ -39,7 +39,7 @@ emptyFilterBlock : String -> Color -> BlockTemplate
 emptyFilterBlock str col = 
     (\id -> 
         let     
-                fragment = (H (Filter Nothing Nothing))
+                fragment = (H (Filter Nothing []))
                 (els, forms) = fragmentToForms fragment id
         in 
                 {id = id
@@ -53,7 +53,7 @@ emptyMapBlock : String -> Color -> BlockTemplate
 emptyMapBlock str col = 
     (\id -> 
         let 
-                fragment = (H (Map Nothing Nothing))
+                fragment = (H (Map Nothing []))
                 (els, forms) = fragmentToForms fragment id
         in 
                 {id = id

@@ -55,7 +55,7 @@ processAnyAction funcDragAction funcBlockAction funcEvalAction action modelList 
     model::models ->
         case action of
             DAction a -> (funcDragAction a model)  :: models
-            BAction a -> (funcBlockAction a model) :: models
+            BAction a -> (funcBlockAction a model) :: model :: models
             EAction Forward -> funcEvalAction model :: model :: models
             EAction Backward -> models
             EAction NoEval -> model :: models

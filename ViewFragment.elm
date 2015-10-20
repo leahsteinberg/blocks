@@ -13,8 +13,6 @@ import Drag exposing (makeHoverable)
 
 
 
-
-
 fragmentToForms : Fragment -> ID -> (List Form, List Form)
 fragmentToForms fragment id = frToFormsShift fragment id 0
 
@@ -174,8 +172,8 @@ endForms col xShift = [addLeftConvex col xShift hofWidth hofHeight False, addRig
 
 viewVRocks : Rocks -> ID -> Int ->  Form
 viewVRocks rocks id xShift = 
-    let shift = if xShift == 0 then ((hofWidth/2) + (toFloat ((xShift)  * (hofWidth + blockOffset)))) - 40 else (toFloat (xShift)  * (hofWidth + blockOffset) + 20)
-    in  rockElement rocks 0.3
+    let shift = if xShift == 0 then ((hofWidth/2) + (toFloat ((xShift)  * (hofWidth + blockOffset)))) - 37 else (toFloat (xShift)  * (hofWidth + blockOffset) + 38)
+    in  rockElement rocks 0.38
             |> makeHoverable id
             |> toForm
             |> move (shift, -10)
@@ -194,7 +192,7 @@ rockElement rocks scale =
         rockWidthS = round (rockWidth * scale)
         rockHeightS = round (rockHeight * scale)
         rockListWidthS = rockWidthS * 10
-        addRock rock (rList, i) = ((newRock rock i rockWidthS rockListWidthS 1.0) :: rList, i + 1)
+        addRock rock (rList, i) = ((newRock rock i rockWidthS rockListWidthS scale) :: rList, i + 1)
         rocksForm rocks = (List.foldl addRock ([], 0) rocks)
                               |> fst      
         background = rect (toFloat (rockListWidthS-3)) (toFloat (rockHeightS-3))

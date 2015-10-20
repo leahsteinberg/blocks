@@ -21,7 +21,7 @@ selectBlock = mailbox Nothing
 blockTransform : Signal.Mailbox BlockAction
 blockTransform = Signal.mailbox None
 
-evalMailbox = (Debug.watch "mb" (mailbox False))
+evalMailbox = (Debug.watch "mb" (mailbox NoEval))
 
 
 -- - - - -  R O U T I N G - A C T I O N S  - - - - -
@@ -47,16 +47,22 @@ handleEvalSignal = Signal.map fromEvalAction (Debug.watch "eval " <~ evalMailbox
 allUpdateSignals : Signal Action
 allUpdateSignals = Signal.merge (Signal.merge handleDragSignal handleBlockSignal) handleEvalSignal
 
-processAnyAction : (DragAction -> Model -> Model) -> (BlockAction -> Model -> Model) -> (EvalAction -> Model -> Model) -> Action -> Model -> Model
-processAnyAction funcDragAction funcBlockAction funcEvalAction action model =
-    case action of
-        DAction a -> funcDragAction a model
-        BAction a -> funcBlockAction a model
-        EAction a -> funcEvalAction a model
+processAnyAction : (DragAction -> Model -> Model) -> (BlockAction -> Model -> Model) -> (Model -> Model) -> Action -> List Model -> List Model
+
+processAnyAction funcDragAction funcBlockAction funcEvalAction action modelList =
+  case modelList of
+    [] -> [emptyModel]
+    model::models ->
+        case action of
+            DAction a -> (funcDragAction a model)  :: models
+            BAction a -> (funcBlockAction a model) :: models
+            EAction Forward -> funcEvalAction model :: model :: models
+            EAction Backward -> models
+            EAction NoEval -> model :: models
 
 
-signalRouter :  Action -> Model -> Model
-signalRouter sAction model = processAnyAction updateDrag updateBlock updateEval sAction model
+signalRouter :  Action -> List Model -> List Model
+signalRouter sAction models = processAnyAction updateDrag updateBlock updateEval sAction models
 
 
 -- - - - - - -  U P D A T E - M O D E L  - - - - - - - - - 
@@ -77,9 +83,9 @@ updateBlock action m =
         _ -> m
 
 
-updateEval : EvalAction -> Model -> Model
-updateEval action m =
-            if action then evalStep m else m
+updateEval : Model -> Model
+updateEval m = evalStep m 
+
 
 
 -- - - - - - -  D R A G G I N G  - - - - - - - - - 

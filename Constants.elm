@@ -3,7 +3,7 @@ module Constants where
 import Color exposing (rgb, red)
 import Text exposing (style)
 import Graphics.Collage exposing (defaultLine)
-
+import Dict
 
 
 
@@ -21,10 +21,11 @@ bBlue = rgb 66 233 233
 bGreen = rgb 66 233 150
 bRed = rgb 231 162 233
 bPurple = rgb 207 255 213
-
+evalColor = bPurple
+rewindColor = bGreen
 filterColor = bBlue
 mapColor = bPurple
-
+emptyModel = {nextID = 1, blocks = Dict.empty}
 
 applyStyle =style {
             typeface = ["Courier New"]

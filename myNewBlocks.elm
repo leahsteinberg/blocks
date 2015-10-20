@@ -20,7 +20,7 @@ import Model exposing (..)
 import SignalProcessing exposing (..)
 import Color exposing (red, black)
 import BlockMenu exposing (menuButtons)
-import ControlPanel exposing (evalButton)
+import ControlPanel exposing (evalButtons)
 
 
 applyTypeface = typeface ["Courier New", "times new roman"]
@@ -98,7 +98,7 @@ dummyRockList = [
 
 --main = collage 700 700 (viewRocks (Just {pos= (-300, 300), rockList= dummyRockList} ))
 
-emptyModel = {nextID = 1, blocks = Dict.empty}
+
 
 helperCircles = List.map (\ p -> (move  p (filled green(circle 5.0)))) [(0.0, 0.0)
                                                                         , (-50.0, 0.0)
@@ -120,16 +120,22 @@ centerBall = circle 10.0
 
 
 
+viewModels : (Int, Int) -> List Model -> Element
+viewModels (w, h) models =
+  case models of 
+    [] -> view (w, h) emptyModel
+    model::models -> view (w, h) model
+
+
 view : (Int, Int) -> Model -> Element
 view (w, h) m =
-
   let blockList = Dict.values m.blocks
   in
       collage w h
       (  
         (displayForms blockList) ++ 
           (displayElements blockList) ++
-         (menuButtons w) ++ [evalButton]
+         (menuButtons w) ++ (evalButtons w)
          )
 
 
@@ -145,8 +151,8 @@ displayForms blocks =
     List.map (\f -> move (floatPos b.pos) f) b.forms) blocks
 
 
-main = Signal.map2 view Window.dimensions (Debug.watch "model" <~ foldModel)
+main = Signal.map2 viewModels Window.dimensions (Debug.watch "model" <~ foldModel)
 
-foldModel : Signal Model 
-foldModel = Signal.foldp signalRouter emptyModel allUpdateSignals
+foldModel : Signal (List Model) 
+foldModel = Signal.foldp signalRouter [emptyModel] allUpdateSignals
 

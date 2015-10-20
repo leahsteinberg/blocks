@@ -19,8 +19,6 @@ type Exp = C HOF Exp
 
 type HOF = Filter (Maybe Func) (Maybe Rocks) | Map (Maybe Func) (Maybe Rocks)
 
-
-
 type alias Rocks = List Rock
 
 type alias Rock = {value: Int
@@ -45,11 +43,13 @@ type alias Block = {id: ID
 
 
 
-type Action = DAction DragAction | BAction BlockAction
+type Action = DAction DragAction | BAction BlockAction | EAction EvalAction
 
 type BlockAction = Add BlockTemplate | None
 
 type DragAction = Lift | MoveBy (Int, Int, Int) | Release Int
+
+type alias EvalAction = Bool
 
 type alias Position = (Int, Int)
 

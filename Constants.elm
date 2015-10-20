@@ -19,9 +19,9 @@ blockOffset = 10
 bBlue = rgb 66 233 233
 bGreen = rgb 66 233 150
 bRed = rgb 231 162 233
-bPurple = rgb 207 169 213
+bPurple = rgb 207 255 213
 
-filterColor = bRed
+filterColor = bBlue
 mapColor = bPurple
 
 

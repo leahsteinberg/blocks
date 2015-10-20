@@ -20,7 +20,6 @@ selectBlock = mailbox Nothing
 blockTransform : Signal.Mailbox BlockAction
 blockTransform = Signal.mailbox None
 
-
 evalMailbox = mailbox True
 
 
@@ -40,14 +39,21 @@ handleDragSignal : Signal Action
 handleDragSignal = 
             Signal.map fromDragAction (Debug.watch "drag signal" <~ dragSignal)
 
+
+
+--handleEvalSignal : Signal Action
+--handleEvalSignal = 
+--            Signal.map fromEvalAction evalSignal
+
 allUpdateSignals : Signal Action
 allUpdateSignals = Signal.merge handleDragSignal handleBlockSignal
 
 processAnyAction : (DragAction -> Model -> Model) -> (BlockAction -> Model -> Model) -> Action -> Model -> Model
-processAnyAction funcDragAction funcBlockAction action model =
+processAnyAction funcDragAction funcBlockAction  action model =
     case action of
         DAction a -> funcDragAction a model
         BAction a -> funcBlockAction a model
+--        EAction a -> funcEvalAction a model
 
 
 signalRouter :  Action -> Model -> Model

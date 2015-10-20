@@ -16,7 +16,6 @@ type Fragment = E Exp | F Func | H HOF
 type Exp = C HOF Exp
             | R Rocks
 
-
 type HOF = Filter (Maybe Func) Rocks | Map (Maybe Func) Rocks
 
 type alias Rocks = List Rock

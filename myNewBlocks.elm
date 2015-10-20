@@ -126,10 +126,10 @@ view (w, h) m =
   let blockList = Dict.values m.blocks
   in
       collage w h
-      (  evalButton::
+      (  
         (displayForms blockList) ++ 
           (displayElements blockList) ++
-         (menuButtons w)
+         (menuButtons w) ++ [evalButton]
          )
 
 
@@ -145,7 +145,7 @@ displayForms blocks =
     List.map (\f -> move (floatPos b.pos) f) b.forms) blocks
 
 
-main = Signal.map2 view Window.dimensions foldModel
+main = Signal.map2 view Window.dimensions (Debug.watch "model" <~ foldModel)
 
 foldModel : Signal Model 
 foldModel = Signal.foldp signalRouter emptyModel allUpdateSignals

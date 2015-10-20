@@ -21,7 +21,7 @@ selectBlock = mailbox Nothing
 blockTransform : Signal.Mailbox BlockAction
 blockTransform = Signal.mailbox None
 
-evalMailbox = mailbox False
+evalMailbox = (Debug.watch "mb" (mailbox False))
 
 
 -- - - - -  R O U T I N G - A C T I O N S  - - - - -
@@ -42,7 +42,7 @@ handleDragSignal : Signal Action
 handleDragSignal = Signal.map fromDragAction dragSignal
 
 handleEvalSignal : Signal Action
-handleEvalSignal = Signal.map fromEvalAction evalMailbox.signal
+handleEvalSignal = Signal.map fromEvalAction (Debug.watch "eval " <~ evalMailbox.signal)
 
 allUpdateSignals : Signal Action
 allUpdateSignals = Signal.merge (Signal.merge handleDragSignal handleBlockSignal) handleEvalSignal

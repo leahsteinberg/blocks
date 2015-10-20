@@ -2,12 +2,21 @@ module Eval where
 
 import Dict
 import Model exposing (..)
+import ViewFragment exposing (fragmentToForms)
 
 evalStep : Model -> Model
 evalStep m = 
     let 
-        processBlock block exp = {block | exp <- E (evalExp exp)}
-        updateModel block exp = {m | blocks <- Dict.insert 1 (processBlock block exp) m.blocks}
+        
+        updateModel block exp = 
+            let 
+                newFragment = E (evalExp exp) 
+                (ele, forms) = fragmentToForms newFragment 1
+                processBlock block exp = {block | exp <- newFragment
+                                        , ele <- ele
+                                        , forms <- forms}
+            in
+                {m | blocks <- Dict.insert 1 (processBlock block exp) m.blocks}
     in
         case Dict.get 1 m.blocks of
             Just block -> 
@@ -28,8 +37,8 @@ evalExp exp =
 mapStep : Func -> Rocks -> Rock -> Rocks
 mapStep func processedRocks rock = 
     case func of 
-        T transform -> [rock]
-        _ -> [rock]
+        T transform -> (transform rock)::processedRocks
+        _ -> rock::processedRocks
 
 
 step : HOF -> Rocks -> Exp

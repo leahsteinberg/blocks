@@ -23,6 +23,7 @@ collisionDetection block id model =
   case block.exp of
     E exp -> collisionExp block id model
     H hof -> collisionHOF block id model
+    F func -> collisionFunc block func id model
 
 
 collisionHOF : Block -> ID -> Model -> Model
@@ -39,13 +40,111 @@ collisionHOF block id model =
 collisionExp : Block -> ID -> Model -> Model
 collisionExp block id model =
   let
-      expLeftCorners = (Debug.watch "exp left" (findLeftCornersExp block))
+      expLeftCorners = (findLeftCornersExp block)
       otherBlocks = Dict.values model.blocks
       mCollidedBlock = List.foldl (collide (checkExpCollisions expLeftCorners id)) Nothing otherBlocks
   in
       case mCollidedBlock of
         Just collidedBlock -> combineBlocks addExp collidedBlock block model
         _ -> model
+
+collisionFunc : Block -> Func -> ID -> Model -> Model
+collisionFunc block func id model =
+  let
+      funcLeftCorners = (Debug.watch "left func" (findLeftCornersFunc block))
+      otherBlocks = Dict.values model.blocks
+      mCollidedBlock = List.foldl (collide (checkFuncCollisions funcLeftCorners func id)) Nothing otherBlocks
+  in
+      case mCollidedBlock of
+          Just collidedBlock -> combineBlocks (\f1 f2 -> f1) collidedBlock block model
+          _ -> model
+
+
+findLeftCornersFunc : Block -> ((Int, Int), (Int, Int))
+findLeftCornersFunc block = 
+  let
+      (x, y) = block.pos
+      hw = funcWidth // 2
+  in
+      ((x + hw + funcWidth - 3, y + funcWidth), (x + hw + funcWidth - 3, y - funcWidth))
+
+
+checkFuncCollisions : ((Int, Int), (Int, Int)) -> Func -> ID -> Block -> Maybe Block 
+checkFuncCollisions funcLeftCorners func id otherBlock =
+        case otherBlock.exp of
+            E exp -> 
+              let
+                  mExp = checkFuncCollisionsExp funcLeftCorners 0 func exp otherBlock
+              in
+                  case mExp of
+                    Just returnExp -> Just ({otherBlock | exp <- (E returnExp)})
+                    _ -> Nothing
+            H hof -> 
+              let mHOF = checkFuncCollisionsHof funcLeftCorners func hof otherBlock
+              in
+                  case mHOF of
+                    Just returnHOF -> Just ({otherBlock | exp <- (H returnHOF)})
+                    _ -> Nothing
+            _ -> Nothing
+
+
+
+
+checkFuncCollisionsHof : ((Int, Int), (Int, Int)) -> Func -> HOF -> Block -> Maybe HOF
+checkFuncCollisionsHof funcLeftCorners func hof otherBlock = 
+  let
+      possiblyAdd mExistingFunc newFunc = 
+        case mExistingFunc of 
+          Just func -> Just func
+          Nothing -> Just newFunc
+      addToHOF = 
+              case hof of 
+        Filter mFunc mRocks -> Just (Filter (possiblyAdd mFunc func) mRocks)
+        Map mFunc mRocks -> Just (Filter (possiblyAdd mFunc func) mRocks)
+      (x, y) = otherBlock.pos
+      hofMiddlePoints = ((x + hofWidth//2, y + hofHeight), (x + hofWidth//2, y - hofHeight))
+
+  in
+      if closeEnough (Debug.watch "just hof right" hofMiddlePoints) funcLeftCorners then addToHOF else Nothing
+
+
+addFuncHof : HOF -> Func -> HOF 
+addFuncHof hof func = 
+  let
+      possiblyAdd mExistingFunc newFunc = 
+        case mExistingFunc of 
+          Just func -> Just func
+          Nothing -> Just newFunc
+  in
+
+      case hof of 
+        Filter mFunc mRocks -> Filter (possiblyAdd mFunc func) mRocks
+        Map mFunc mRocks -> Filter (possiblyAdd mFunc func) mRocks
+
+
+checkFuncCollisionsExp : ((Int, Int), (Int, Int)) -> Int -> Func -> Exp -> Block -> Maybe Exp
+checkFuncCollisionsExp funcLeftCorners xShift func otherExp block =
+  case otherExp of
+    C hof littleExp -> if closeEnoughFunc funcLeftCorners xShift func hof block
+                            then Just (C (addFuncHof hof func) littleExp)  else 
+                              let
+                                  mExp =  (checkFuncCollisionsExp funcLeftCorners (xShift + 1) func littleExp block)
+                              in
+                                  case mExp of
+                                    Just recurExp -> Just (C hof recurExp)
+                                    Nothing -> Nothing
+    _ -> Nothing
+
+
+closeEnoughFunc : ((Int, Int), (Int, Int)) -> Int -> Func -> HOF -> Block -> Bool
+closeEnoughFunc funcLeftCorners xShift func hof block = 
+  let
+      (x,y) = block.pos
+      hofX =  (xShift* (hofWidth + blockOffset)) + (hofWidth//2)
+      hofMiddlePoints = ((x + hofX, y + hofHeight), (x + hofX, y - hofHeight))
+  in
+      closeEnough funcLeftCorners (Debug.watch "hof middle" hofMiddlePoints)
+
 
 
 collide : (Block -> Maybe Block) -> Block -> Maybe Block -> Maybe Block
@@ -61,6 +160,8 @@ checkHOFCollisions hofRightCorners id otherBlock =
   case otherBlock.exp of
     E exp -> if closeEnoughOnRight hofRightCorners otherBlock then Just otherBlock else Nothing
     _ -> Nothing
+
+
 
 
 checkExpCollisions : ((Int, Int), (Int, Int)) -> ID -> Block -> Maybe Block
@@ -92,7 +193,7 @@ closeEnoughOnRight rightCorners otherBlock =
 closeEnoughOnLeft : ((Int, Int), (Int, Int)) -> Block -> Bool
 closeEnoughOnLeft leftCorners otherBlock =
   let
-      hofRightCorners = (Debug.watch "right corner" (getHOFRightCorners otherBlock))
+      hofRightCorners = (getHOFRightCorners otherBlock)
   in 
       closeEnough leftCorners hofRightCorners
 

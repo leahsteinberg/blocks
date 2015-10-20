@@ -103,10 +103,13 @@ viewFunc func id xShift =
         case func of
           T transform -> viewTransform transform
 
-      makeFunc = (funcElement genericRock)
-            |> makeHoverable id
-            |> toForm
---            |> moveX  ((hofWidth/2) + (toFloat (xShift * hofWidth)) + 35)
+      makeFunc = leftAligned (applyStyle (fromString "funnnn"))
+                        |> color bGreen
+                        |> size funcWidth funcHeight
+--        (funcElement genericRock)
+                        |> makeHoverable id
+                        |> toForm
+                        |> moveX  (((hofWidth/2) + 40) + (toFloat (xShift * (hofWidth +10))))
   in
     ([makeFunc], [])
 

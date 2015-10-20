@@ -100,7 +100,7 @@ checkFuncCollisionsHof funcLeftCorners func hof otherBlock =
       addToHOF = 
               case hof of 
         Filter mFunc mRocks -> Just (Filter (possiblyAdd mFunc func) mRocks)
-        Map mFunc mRocks -> Just (Filter (possiblyAdd mFunc func) mRocks)
+        Map mFunc mRocks -> Just (Map (possiblyAdd mFunc func) mRocks)
       (x, y) = otherBlock.pos
       hofMiddlePoints = ((x + hofWidth//2, y + hofHeight), (x + hofWidth//2, y - hofHeight))
 
@@ -119,7 +119,7 @@ addFuncHof hof func =
 
       case hof of 
         Filter mFunc mRocks -> Filter (possiblyAdd mFunc func) mRocks
-        Map mFunc mRocks -> Filter (possiblyAdd mFunc func) mRocks
+        Map mFunc mRocks -> Map (possiblyAdd mFunc func) mRocks
 
 
 checkFuncCollisionsExp : ((Int, Int), (Int, Int)) -> Int -> Func -> Exp -> Block -> Maybe Exp

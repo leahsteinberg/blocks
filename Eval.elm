@@ -5,25 +5,28 @@ import Model exposing (..)
 import ViewFragment exposing (fragmentToForms)
 
 evalStep : Model -> Model
-evalStep m = 
+evalStep m = List.foldl evalBlock m (Dict.values m.blocks) 
+
+evalBlock : Block -> Model -> Model
+evalBlock block m =
     let 
         
         updateModel block exp = 
             let 
                 newFragment = E (evalExp exp) 
-                (ele, forms) = fragmentToForms newFragment 1
+                (ele, forms) = fragmentToForms newFragment block.id
                 processBlock block exp = {block | exp <- newFragment
                                         , ele <- ele
                                         , forms <- forms}
             in
-                {m | blocks <- Dict.insert 1 (processBlock block exp) m.blocks}
+                {m | blocks <- Dict.insert block.id (processBlock block exp) m.blocks}
     in
-        case Dict.get 1 m.blocks of
-            Just block -> 
-                case block.exp of
-                    E blockExp -> updateModel block blockExp
-                    _ -> m
+        case block.exp of
+            E blockExp -> updateModel block blockExp
             _ -> m
+
+
+
 
 
 evalExp : Exp -> Exp
@@ -34,22 +37,19 @@ evalExp exp =
         C hof nestExp -> C hof (evalExp nestExp)
 
 
-mapStep : Func -> Rocks -> Rock -> Rocks
-mapStep func processedRocks rock = 
-    case func of 
-        T transform -> (transform rock)::processedRocks
-        _ -> rock::processedRocks
-
-
 step : HOF -> Rocks -> Exp
 step hof rocks =   
     case (hof, rocks) of 
-        (Map Nothing _, _) -> R rocks
-        (Filter Nothing _, _) -> R rocks
+        --(Map Nothing _, _) -> R rocks
+        --(Filter Nothing _, _) -> R rocks
         (Filter _ processedRocks, []) -> R processedRocks
         (Map _ processedRocks, []) -> R processedRocks
-        (Map (Just func) processedRocks, hd::tl) -> 
-            C (Map (Just func) (mapStep func processedRocks hd)) (R tl)
+        (Map (Just (T transform)) processedRocks, hd::tl) -> 
+            C (Map (Just (T transform)) (processedRocks ++ [(transform hd)])) (R tl)
+        (Filter (Just (P pred)) processedRocks, hd::tl) -> 
+            let updatedRocks = if pred hd then processedRocks ++ [hd] else processedRocks in
+            C (Filter (Just (P pred)) (updatedRocks)) (R tl)
+        _ -> R rocks
     -- unpack expression
     -- find redex
     -- change it and return

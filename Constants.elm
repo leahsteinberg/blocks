@@ -12,6 +12,7 @@ hofHeight = 50
 funcWidth = 60
 funcHeight = 40
 rockListWidth = 10 * rockWidth
+
 rockWidth = 20
 rockHeight = hofHeight - 2
 blockOffset = 10

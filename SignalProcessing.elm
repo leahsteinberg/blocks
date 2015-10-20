@@ -87,7 +87,7 @@ updateEval action m =
 doDrag : Model -> ID -> Model.Position -> Model
 doDrag m id pos = 
     {m | blocks <- 
-      Dict.insert id (dragBlock (Dict.get id m.blocks) pos) m.blocks
+      Dict.insert id (dragBlock (Dict.get (Debug.watch "trying to drag" id) m.blocks) pos) m.blocks
     }
 
 
@@ -95,6 +95,7 @@ dragBlock : Maybe Block -> Model.Position -> Block
 dragBlock mBlock position =
   case mBlock of
     Just block -> {block | pos <- moveBy position block.pos}
+--    _ -> {id = 0, exp = E (R []), ele = [], forms = [], pos = (-1000, -1000), selected = False}
 
 
 moveBy : (Int, Int) -> (Int, Int) -> (Int, Int)

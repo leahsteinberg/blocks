@@ -17,14 +17,39 @@ rockWidth = 20
 rockHeight = hofHeight - 2
 blockOffset = 10
 
-bBlue = rgb 66 233 233
+
+
+-- filter colors
+bLightPurple = rgb 204 204 255
+bPurple = rgb 127 0 255
+
+filterColor = bLightPurple
+predColor = bPurple
+
+
+--- map colors
+bLightGreen = rgb 207 255 213
 bGreen = rgb 66 233 150
-bRed = rgb 231 162 233
-bPurple = rgb 207 255 213
-evalColor = bPurple
-rewindColor = bGreen
-filterColor = bBlue
-mapColor = bPurple
+
+mapColor = bLightGreen
+transformColor = bGreen
+
+
+-- other colors
+bBlue = rgb 66 233 233
+rocksColor = bBlue
+
+bOrange = rgb 255 128 0
+bYellow = rgb 255 255 153
+
+evalColor = bOrange
+rewindColor = bYellow
+
+
+
+
+
+
 emptyModel = {nextID = 1, blocks = Dict.empty}
 
 applyStyle =style {
@@ -52,7 +77,7 @@ lineStyle col = {defaultLine
                 | color <- col, width <- 10.0}
 
 dashedLineStyle col = {defaultLine
-                        | color <- col, width <- 2.5, dashing <- [5, 3]}
+                        | color <- col, width <- 2.5, dashing <- [4, 4]}
 
 
     

@@ -34,6 +34,24 @@ makeMenuButtonCustom blockTemplate str col i width =
             |> move (xValue, 300 / 10 * (toFloat i))
 
 
+makeFuncButton : BlockTemplate ->  Int -> Int -> Color ->Form
+makeFuncButton blockTemplate i width col =
+    let
+        xValue =  -((toFloat width)/2 - 30)
+        yValue = 300 / 10 * (toFloat i)
+        fakeFuncBlock = blockTemplate 0
+        fakeFuncFrag = fakeFuncBlock.exp
+        buttonBackgroundForms = fst (fragmentToForms  fakeFuncFrag -1)
+        buttonElement = collage (rockWidth*3) (rockWidth*3) buttonBackgroundForms
+    in
+        customButton (Signal.message blockTransform.address (Add blockTemplate))
+            buttonElement buttonElement buttonElement
+                |> toForm
+                |> move (xValue, yValue)
+
+        
+
+
 
 emptyFilterBlock : String -> Color -> BlockTemplate
 emptyFilterBlock str col = 
@@ -63,22 +81,25 @@ emptyMapBlock str col =
                     , exp = fragment
                     , forms = forms})
 
-transformRedBlock : Fragment
-transformRedBlock = 
-      F (T toRedFunc) 
+transformFragment : (Rock -> Rock) -> Fragment
+transformFragment func = 
+      F (T func) 
 
 
 toRedFunc : Rock -> Rock
-toRedFunc rock =
-    {rock | color <- red}
+toRedFunc rock = {rock | color <- red}
+
+toBlueFunc : Rock -> Rock
+toBlueFunc rock = {rock | color <- blue}
 
 
-emptyTransformRedBlock : String -> Color -> BlockTemplate
-emptyTransformRedBlock str col =
+
+emptyTransformRedBlock :  BlockTemplate
+emptyTransformRedBlock =
   (\id ->
     let
-        fragment = transformRedBlock
-        (els, forms)  = fragmentToForms transformRedBlock id
+        fragment = transformFragment toRedFunc
+        (els, forms)  = fragmentToForms fragment id
     in
                   {id= id
                 , ele = els
@@ -89,6 +110,20 @@ emptyTransformRedBlock str col =
             )
 
 
+emptyTransformBlueBlock :  BlockTemplate
+emptyTransformBlueBlock =
+  (\id ->
+    let
+        fragment = transformFragment toBlueFunc
+        (els, forms)  = fragmentToForms fragment id
+    in
+                  {id= id
+                , ele = els
+                , selected = False
+                , pos= (-(id *30), id*10)
+                , exp = fragment
+                , forms = forms}
+            )
 
 dummyRockList : List Rock
 dummyRockList = [
@@ -118,18 +153,20 @@ emptyRocksBlock  str col =
                 , forms = forms}
                 )
 
-menuData = [(emptyFilterBlock, "filter", bRed, 1), (emptyMapBlock, "map", bPurple, 2), (emptyRocksBlock, "rocks", bGreen, 3), (emptyTransformRedBlock, "red", bGreen, 4)]
+menuData : List ((String -> Color -> BlockTemplate), String, Color, Int)
+menuData = [(emptyFilterBlock, "filter", filterColor, 1), (emptyMapBlock, "map", mapColor, 2), (emptyRocksBlock, "rocks", rocksColor, 3)]
+
+funcMenuData : List (BlockTemplate, Int, Color)
+funcMenuData = [(emptyTransformRedBlock, -1, transformColor), (emptyTransformBlueBlock, -3, transformColor)]
 
 
+menuButtons width = makeMenuButtons width ++ makeFuncButtons width
 
-makeMenuButton : BlockTemplate -> String -> Color -> Int -> Int -> Form
-makeMenuButton blockTemp str col i width = 
-    makeMenuButtonCustom blockTemp str col i width
-
-menuButtons : Int -> List Form
-menuButtons width = List.map (\(blockTemp, str, col, i) -> makeMenuButton (blockTemp str col) str col i width) menuData
+makeMenuButtons : Int -> List Form
+makeMenuButtons width = List.map (\(blockTemp, str, col, i) -> makeMenuButtonCustom (blockTemp str col) str col i width) menuData
     
-
+makeFuncButtons : Int -> List Form
+makeFuncButtons width  = List.map (\(blockTemp, i, col) -> makeFuncButton blockTemp i width col) funcMenuData
 
 --filterBackground : Form
 --filterBackground =

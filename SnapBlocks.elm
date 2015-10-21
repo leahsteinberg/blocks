@@ -88,6 +88,12 @@ checkFuncCollisions funcLeftCorners func id otherBlock =
             _ -> Nothing
 
 
+typeCheckFunc : HOF -> Func -> Bool
+typeCheckFunc hof func =
+  case (hof, func) of
+    (Filter _ _, P pred) -> True
+    (Map _ _, T transform) -> True
+    _ -> False
 
 
 checkFuncCollisionsHof : ((Int, Int), (Int, Int)) -> Func -> HOF -> Block -> Maybe HOF
@@ -97,6 +103,7 @@ checkFuncCollisionsHof funcLeftCorners func hof otherBlock =
         case mExistingFunc of 
           Just func -> Just func
           Nothing -> Just newFunc
+      
       addToHOF = 
               case hof of 
         Filter mFunc mRocks -> Just (Filter (possiblyAdd mFunc func) mRocks)
@@ -105,7 +112,7 @@ checkFuncCollisionsHof funcLeftCorners func hof otherBlock =
       hofMiddlePoints = ((x + hofWidth//2, y + hofHeight), (x + hofWidth//2, y - hofHeight))
 
   in
-      if closeEnough (Debug.watch "just hof right" hofMiddlePoints) funcLeftCorners then addToHOF else Nothing
+      if closeEnough (Debug.watch "just hof right" hofMiddlePoints) funcLeftCorners && typeCheckFunc hof func then addToHOF else Nothing
 
 
 addFuncHof : HOF -> Func -> HOF 

@@ -135,7 +135,7 @@ view (w, h) m =
       (  
         (displayForms blockList) ++ 
           (displayElements blockList) ++
-         (menuButtons w) ++ (evalButtons w)
+         menuButtons w ++ evalButtons (w, h)
          )
 
 

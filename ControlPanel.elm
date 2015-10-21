@@ -7,25 +7,25 @@ import Graphics.Element exposing (..)
 import Graphics.Input exposing (..)
 import Model exposing (..)
 
-evalButton : Int -> Form
-evalButton w =   
+evalButton : (Int, Int) -> Form
+evalButton (w, h) =   
     let 
-        buttonBackground = (Graphics.Element.color evalColor (centered (fromString "eval")))
+        buttonBackground = (Graphics.Element.color evalColor (centered (fromString "evaluate")))
     in
       customButton (Signal.message evalMailbox.address Forward)
           buttonBackground buttonBackground buttonBackground
             |> toForm
-            |> move (toFloat (w//2 - 40), 250)
+            |> move (toFloat (w//2 - 40), (toFloat (h//2 - 30)))
 
 
-rewindButton : Int -> Form
-rewindButton w = 
+rewindButton : (Int, Int) -> Form
+rewindButton (w, h) = 
     let 
-        buttonBackground = (Graphics.Element.color rewindColor (centered (fromString "rewind")))
+        buttonBackground = (Graphics.Element.color rewindColor (centered (fromString "devaluate")))
     in
       customButton (Signal.message evalMailbox.address Backward)
           buttonBackground buttonBackground buttonBackground
             |> toForm
-            |> move (toFloat (w//2 - 40), 200)
+            |> move (toFloat (w//2 - 40), (toFloat (h//2 - 60)))
 
-evalButtons w = List.map (\b -> b w) [rewindButton, evalButton]
+evalButtons (w, h) = List.map (\b -> b (w, h)) [rewindButton, evalButton]

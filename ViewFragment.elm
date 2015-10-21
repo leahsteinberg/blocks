@@ -7,23 +7,23 @@ import Color exposing (Color, white, red, black)
 import Graphics.Collage exposing (Form, moveX, move, toForm, rect, outlined, polygon, filled, collage, ngon, circle, solid, Shape, segment, traced, group)
 import Model exposing (..)
 import Constants exposing (..)
-
 import Drag exposing (makeHoverable)
+import Debug
 
 
 
 
 fragmentToForms : Fragment -> ID -> (List Form, List Form)
-fragmentToForms fragment id = frToFormsShift fragment id 0
+fragmentToForms fragment id = if id == -1 then frToFormsShift fragment id -1 else frToFormsShift fragment id 0
 
 frToFormsShift : Fragment -> ID -> Int -> (List Form, List Form)
 frToFormsShift fr id xShift =
     case fr of
-        H hof -> viewHof hof id 0
+        H hof -> viewHof hof id xShift
 
-        F func -> viewFunc func id 0
+        F func -> viewFunc func id xShift
 
-        E exp -> expToForms exp id 0
+        E exp -> expToForms exp id xShift
 
 
 expToForms : Exp -> ID -> Int -> (List Form, List Form)
@@ -59,53 +59,58 @@ viewHof hof id xShift =
 
         hofForms col = endForms col xShift
 
-        packageForms mFunc vRocks str col =
+        packageForms mFunc vRocks str col col2 =
             let 
                 vRockAttachment = [viewVRocks vRocks id xShift]
-                funcAttachments = viewMaybeFunc mFunc id xShift
+                funcAttachments = viewMaybeFunc mFunc id xShift col2
             in 
                 (hofBox str col :: fst funcAttachments ++ vRockAttachment, hofForms col ++ snd funcAttachments)
 --:: hofBox str col :: fst funcAttachments
     in 
         case hof of 
-            Filter mFunc mVRocks -> packageForms mFunc mVRocks "filter" filterColor
+            Filter mFunc mVRocks -> packageForms mFunc mVRocks "filter" filterColor predColor
 
-            Map mFunc mVRocks -> packageForms mFunc mVRocks "map" mapColor
+            Map mFunc mVRocks -> packageForms mFunc mVRocks "map" mapColor transformColor
 
 
-viewMaybeFunc : Maybe Func -> ID -> Int -> (List Form, List Form)
-viewMaybeFunc mFunc id xShift =
+viewMaybeFunc : Maybe Func -> ID -> Int -> Color -> (List Form, List Form)
+viewMaybeFunc mFunc id xShift col =
     case mFunc of 
-        Just func -> viewFunc func id xShift
+        Just func -> viewFunc func id xShift 
 
-        Nothing -> viewEmptyFunc id xShift
+        Nothing -> viewEmptyFunc id xShift col
 
 
-viewEmptyFunc : ID -> Int -> (List Form, List Form)
-viewEmptyFunc id xShift =     
+viewEmptyFunc : ID -> Int -> Color -> (List Form, List Form)
+viewEmptyFunc id xShift col =     
     let 
-        el = Graphics.Element.centered (applySmallStyle (fromString "function"))
-                        |> color bGreen
-                        |> size funcWidth funcHeight
-                        |> makeHoverable id
-                        |> toForm
-                        |> moveX  (((hofWidth/2) + 40) + (toFloat (xShift * (hofWidth +10))))
+        backgroundCircle = circle (rockWidth)
+                      |> outlined (dashedLineStyle col)
+      
+
+        circleForm = collage (rockWidth+50) (rockHeight+15) [backgroundCircle]
+                            |> makeHoverable id
+                            |> toForm
+                            |> moveX  (((hofWidth/2) + 40) + (toFloat (xShift * (hofWidth +10))))
+
     in
-        ([el], [])
+        ([circleForm], [])
 
 
 
 viewFunc : Func -> ID -> Int -> (List Form, List Form)
 viewFunc func id xShift =
   let
+      shift = if xShift == -1 then 0 else (((hofWidth/2) + 40) + (toFloat (xShift * (hofWidth +10))))
       funcElement = 
         case func of
           T transform -> viewTransform transform
 
+
       makeFunc = (funcElement genericRock)
                         |> makeHoverable id
                         |> toForm
-                        |> moveX  (((hofWidth/2) + 40) + (toFloat (xShift * (hofWidth +10))))
+                        |> moveX  shift
   in
     ([makeFunc], [])
 
@@ -114,11 +119,11 @@ viewFunc func id xShift =
 viewTransform : (Rock -> Rock) -> Rock -> Element
 viewTransform func rock =
   let 
-      whiteSquare = rect (rockWidth + 10 ) (rockWidth+10)
-                      |> outlined (dashedLineStyle white)
+      backgroundCircle = circle (rockWidth)
+                      |> outlined (dashedLineStyle transformColor)
       whiteArrow = arrowForm
   in
-      collage (rockWidth+50) (rockHeight+15) [(viewRock (func rock) 1.5)]
+      collage (rockWidth+50) (rockHeight+15) [backgroundCircle, (viewRock (func rock) 1.4)]
 
 
 
@@ -196,7 +201,7 @@ rockElement rocks scale =
         rocksForm rocks = (List.foldl addRock ([], 0) rocks)
                               |> fst      
         background = rect (toFloat (rockListWidthS-3)) (toFloat (rockHeightS-3))
-                        |> outlined (solid bGreen)
+                        |> outlined (solid rocksColor)
 
       in
             collage (rockListWidth) rockHeight ([background] ++ rocksForm rocks)
@@ -214,7 +219,7 @@ viewRocks rocks id xShift =
                             |> moveX shift
 
   in
-      ([rockForm], [addLeftConvex bGreen xShift rockListWidth hofHeight True])
+      ([rockForm], [addLeftConvex rocksColor xShift rockListWidth hofHeight True])
 
 viewRock : Rock -> Float ->  Form
 viewRock rock scale =

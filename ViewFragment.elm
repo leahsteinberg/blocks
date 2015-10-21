@@ -4,7 +4,7 @@ import Graphics.Element exposing (leftAligned, centered, color, size, Element, c
 import Text exposing (fromString)
 import Graphics.Input exposing (customButton)
 import Color exposing (Color, white, red, black)
-import Graphics.Collage exposing (Form, moveX, move, toForm, rect, outlined, polygon, filled, collage, ngon, circle, solid, Shape, segment, traced, group)
+import Graphics.Collage exposing (Form, moveX, move, toForm, rect, outlined, polygon, filled, collage, ngon, circle, solid, Shape, segment, traced, group, dashed)
 import Model exposing (..)
 import Constants exposing (..)
 import Drag exposing (makeHoverable)
@@ -251,32 +251,42 @@ viewRocks rocks id xShift =
 
 viewRock : Rock -> Float ->  Form
 viewRock rock scale =
-  let shape = rockShape rock scale
-      paint = if rock.solid 
-        then filled rock.color 
-        else outlined (solid rock.color)
-  in
-      paint shape
+    let 
+        shape = rockShape rock scale
+        paint = if rock.solid 
+                then filled rock.color 
+                else outlined (solid rock.color)
+    in
+        if rock.value == 2 then xForm  scale rock.color rock.solid else 
+            paint shape
 
 
 rockShape : Rock -> Float -> Shape
 rockShape rock scale =
   if| rock.value == 0 -> circle (10.0 * scale)
-    | rock.value == 1 -> rect 3.0 (29.0 * scale)
-    | rock.value == 2 -> ngon 3 (20 * scale)
-    | otherwise -> ngon rock.value (15.0 * scale) 
+    | rock.value == 1 -> rect 3.0 (26.0 * scale)
+    | rock.value == 2 -> ngon rock.value (13.0 * scale)
+    | otherwise -> ngon rock.value (13.0 * scale) 
 
 
 genericRock : Rock
 genericRock = {value= 0, solid= True, color= black }  
 
-arrowForm : Form
-arrowForm = 
+arrowForm : Color -> Form
+arrowForm col = 
   let 
       segments =[segment (-30, 0) (20, 0), segment (-30, 0) (-15, 10), segment (-30, 0) (-15, -10)]
   in
       List.map (traced (dashedLineStyle white)) segments
           |> group
 
+xForm : Float -> Color -> Bool -> Form
+xForm scale col filledIn = 
+  let 
+      lineStyle = if filledIn then solid else dashedLineStyle
+      segments =[segment (-10*scale, 10*scale) (10*scale, -10*scale), segment (-10*scale, -10*scale) (10*scale, 10*scale)]
+  in
+      List.map (traced (lineStyle col)) segments
+          |> group
 
 

@@ -1,9 +1,10 @@
 module Constants where
 
-import Color exposing (rgb, red, blue)
+import Color exposing (rgb, red, blue, black)
 import Text exposing (style)
 import Graphics.Collage exposing (defaultLine)
 import Dict
+import Window
 
 
 
@@ -49,7 +50,7 @@ rewindColor = bYellow
 
 
 
-emptyModel = {nextID = 1, blocks = Dict.empty}
+emptyModel = {nextID = 1, blocks = Dict.empty, dims= (1100, 500), clicked = 0}
 
 applyStyle =style {
             typeface = ["Courier New"]
@@ -78,7 +79,7 @@ lineStyle col = {defaultLine
 dashedLineStyle col = {defaultLine
                         | color <- col, width <- 2.5, dashing <- [4, 4]}
 
-predRockList = [{color = red, value = 0, solid = True}, {color = blue, value = 0, solid = True}]
+predRockList = [{color = red, value = 0, solid = True}, {color = blue, value = 0, solid = True}, {color = black, value = 0, solid = True},{color = black, value = 0, solid = False}]
 
 
     

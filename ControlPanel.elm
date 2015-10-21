@@ -21,7 +21,7 @@ evalButton (w, h) =
 rewindButton : (Int, Int) -> Form
 rewindButton (w, h) = 
     let 
-        buttonBackground = (Graphics.Element.color rewindColor (centered (fromString "devaluate")))
+        buttonBackground = (Graphics.Element.color rewindColor (centered (fromString "rewind")))
     in
       customButton (Signal.message evalMailbox.address Backward)
           buttonBackground buttonBackground buttonBackground

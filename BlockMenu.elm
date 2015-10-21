@@ -31,7 +31,7 @@ makeFuncButton blockTemplate i width col =
     let
         xValue =  -((toFloat width)/2 - 30)
         yValue = 300 / 10 * (toFloat i)
-        fakeFuncBlock = blockTemplate 0
+        fakeFuncBlock = blockTemplate -1
         fakeFuncFrag = fakeFuncBlock.exp
         buttonBackgroundForms = fst (fragmentToForms  fakeFuncFrag -1)
         buttonElement = collage (rockWidth*3) (rockWidth*3) buttonBackgroundForms
@@ -44,20 +44,23 @@ makeFuncButton blockTemplate i width col =
 
 
 menuData : List ((String -> Color -> BlockTemplate), String, Color, Int)
-menuData = [(emptyFilterBlock, "filter", filterColor,-3)
+menuData = [(emptyFilterBlock, "filter", filterColor, 0)
             , (emptyMapBlock, "map", mapColor, 7)
             , (emptyRocksBlock, "rocks", rocksColor, 8)]
 
 transformMenuData : List (BlockTemplate, Int, Color)
-transformMenuData = [(emptyTransformBlock toRedFunc, 5, transformColor)
-                , (emptyTransformBlock toBlueFunc, 3, transformColor)
-                , (emptyTransformBlock (toSolid True), 1, transformColor)
-                , (emptyTransformBlock (toSolid False), -1, transformColor)]
+transformMenuData = [(emptyTransformBlock toRedFunc, 6, transformColor)
+                , (emptyTransformBlock toBlueFunc, 5, transformColor)
+                , (emptyTransformBlock (toSolid True), 4, transformColor)
+                , (emptyTransformBlock (toSolid False), 3, transformColor)
+                , (emptyTransformBlock (addValueToRock 2), 2, transformColor)]
 
 
 predMenuData : List (BlockTemplate, Int, Color)
-predMenuData =   [(emptyPredBlock onlyRedFunc, -5, predColor)
-                , (emptyPredBlock onlyBlueFunc, -7, predColor)]
+predMenuData =   [(emptyPredBlock onlyRedFunc, -1, predColor)
+                , (emptyPredBlock onlyBlueFunc, -2, predColor)
+                , (emptyPredBlock (onlySolid True), -3, predColor)
+                , (emptyPredBlock (onlySolid False), -4, predColor)]
 
 menuButtons width = makeMenuButtons width ++ makeFuncButtons width predMenuData ++ makeFuncButtons width transformMenuData
 
@@ -82,6 +85,9 @@ toBlueFunc rock = {rock | color <- blue}
 
 toSolid : Bool -> Rock -> Rock
 toSolid solid rock = {rock | solid <- solid}
+
+addValueToRock : Int -> Rock -> Rock
+addValueToRock num rock = {rock | value <- rock.value + num}
 
 
 emptyTransformBlock : (Rock -> Rock) -> BlockTemplate
@@ -111,7 +117,8 @@ onlyRedFunc rock = rock.color == red
 onlyBlueFunc : Rock -> Bool
 onlyBlueFunc rock = rock.color == blue
 
-
+onlySolid : Bool -> Rock -> Bool
+onlySolid yes rock = rock.solid == yes && rock.color == black
 
 
 

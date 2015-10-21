@@ -102,10 +102,11 @@ viewFunc : Func -> ID -> Int -> (List Form, List Form)
 viewFunc func id xShift =
   let
       shift = if xShift == -1 then 0 else (((hofWidth/2) + 40) + (toFloat (xShift * (hofWidth +10))))
+      scale = if xShift == -1 then 0.57 else 1.0
       funcElement = 
         case func of
-          T transform -> viewTransform transform
-          P pred -> viewPred pred
+          T transform -> viewTransform transform scale
+          P pred -> viewPred pred scale
 
 
       makeFunc = (funcElement genericRock)
@@ -133,25 +134,25 @@ predRock func =
             _ -> genericRock
 
 
-viewPred : (Rock -> Bool) -> Rock -> Element
-viewPred func rock =
+viewPred : (Rock -> Bool) -> Float -> Rock -> Element
+viewPred func scale rock =
       let 
-      backgroundCircle = circle (rockWidth)
+      backgroundCircle = circle (rockWidth*scale)
                       |> outlined (dashedLineStyle predColor)
       whiteArrow = arrowForm
   in
-      collage (rockWidth+50) (rockHeight+15) [backgroundCircle, (viewRock (predRock func) 1.4)]
+      collage (rockWidth+50) (rockHeight+15) [backgroundCircle, (viewRock (predRock func) scale)]
 
 
 
-viewTransform : (Rock -> Rock) -> Rock -> Element
-viewTransform func rock =
+viewTransform : (Rock -> Rock) -> Float -> Rock -> Element
+viewTransform func scale rock=
   let 
-      backgroundCircle = circle (rockWidth)
+      backgroundCircle = circle (rockWidth*scale)
                       |> outlined (dashedLineStyle transformColor)
       whiteArrow = arrowForm
   in
-      collage (rockWidth+50) (rockHeight+15) [backgroundCircle, (viewRock (func rock) 1.4)]
+      collage (rockWidth+50) (rockHeight+15) [backgroundCircle, (viewRock (func rock) scale)]
 
 
 

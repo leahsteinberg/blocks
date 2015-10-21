@@ -1,6 +1,6 @@
 module Constants where
 
-import Color exposing (rgb, red)
+import Color exposing (rgb, red, blue)
 import Text exposing (style)
 import Graphics.Collage exposing (defaultLine)
 import Dict
@@ -16,7 +16,6 @@ rockListWidth = 10 * rockWidth
 rockWidth = 20
 rockHeight = hofHeight - 2
 blockOffset = 10
-
 
 
 -- filter colors
@@ -78,6 +77,8 @@ lineStyle col = {defaultLine
 
 dashedLineStyle col = {defaultLine
                         | color <- col, width <- 2.5, dashing <- [4, 4]}
+
+predRockList = [{color = red, value = 0, solid = True}, {color = blue, value = 0, solid = True}]
 
 
     

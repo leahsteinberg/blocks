@@ -21,8 +21,8 @@ type HOF = Filter (Maybe Func) Rocks | Map (Maybe Func) Rocks
 type alias Rocks = List Rock
 
 type alias Rock = {value: Int
-            , solid: Bool
-            , color: Color}
+                    , solid: Bool
+                    , color: Color}
 
 
 type Func  = P Pred | T Transform | A Accum 

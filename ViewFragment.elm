@@ -105,6 +105,7 @@ viewFunc func id xShift =
       funcElement = 
         case func of
           T transform -> viewTransform transform
+          P pred -> viewPred pred
 
 
       makeFunc = (funcElement genericRock)
@@ -113,6 +114,33 @@ viewFunc func id xShift =
                         |> moveX  shift
   in
     ([makeFunc], [])
+
+
+
+predRock : (Rock -> Bool) -> Rock
+predRock func =
+    let
+        maybeDisplayRock = List.foldl 
+                (\r mr -> 
+                    case mr of 
+                        Just predRock -> Just predRock
+                        _ -> if func r then Just r else Nothing) 
+                        Nothing 
+                        predRockList
+    in
+        case maybeDisplayRock of
+            Just displayRock -> displayRock
+            _ -> genericRock
+
+
+viewPred : (Rock -> Bool) -> Rock -> Element
+viewPred func rock =
+      let 
+      backgroundCircle = circle (rockWidth)
+                      |> outlined (dashedLineStyle predColor)
+      whiteArrow = arrowForm
+  in
+      collage (rockWidth+50) (rockHeight+15) [backgroundCircle, (viewRock (predRock func) 1.4)]
 
 
 

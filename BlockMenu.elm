@@ -44,23 +44,28 @@ makeFuncButton blockTemplate i width col =
 
 
 menuData : List ((String -> Color -> BlockTemplate), String, Color, Int)
-menuData = [(emptyFilterBlock, "filter", filterColor, 1)
+menuData = [(emptyFilterBlock, "filter", filterColor,-3)
             , (emptyMapBlock, "map", mapColor, 7)
             , (emptyRocksBlock, "rocks", rocksColor, 8)]
 
-funcMenuData : List (BlockTemplate, Int, Color)
-funcMenuData = [(emptyTransformBlock toRedFunc, 5, transformColor)
+transformMenuData : List (BlockTemplate, Int, Color)
+transformMenuData = [(emptyTransformBlock toRedFunc, 5, transformColor)
                 , (emptyTransformBlock toBlueFunc, 3, transformColor)
-                , (emptyPredBlock onlyRedFunc, -1, predColor)
-                , (emptyPredBlock onlyBlueFunc, -3, predColor)]
+                , (emptyTransformBlock (toSolid True), 1, transformColor)
+                , (emptyTransformBlock (toSolid False), -1, transformColor)]
 
-menuButtons width = makeMenuButtons width ++ makeFuncButtons width
+
+predMenuData : List (BlockTemplate, Int, Color)
+predMenuData =   [(emptyPredBlock onlyRedFunc, -5, predColor)
+                , (emptyPredBlock onlyBlueFunc, -7, predColor)]
+
+menuButtons width = makeMenuButtons width ++ makeFuncButtons width predMenuData ++ makeFuncButtons width transformMenuData
 
 makeMenuButtons : Int -> List Form
 makeMenuButtons width = List.map (\(blockTemp, str, col, i) -> makeMenuButtonCustom (blockTemp str col) str col i width) menuData
     
-makeFuncButtons : Int -> List Form
-makeFuncButtons width  = List.map (\(blockTemp, i, col) -> makeFuncButton blockTemp i width col) funcMenuData
+makeFuncButtons : Int -> List (BlockTemplate, Int, Color) -> List Form
+makeFuncButtons width funcList = List.map (\(blockTemp, i, col) -> makeFuncButton blockTemp i width col) funcList
 
 
 -- - - - - - - - - - F U N C - B L O C K S  - - - - - - - - - -      
@@ -69,21 +74,14 @@ transformFragment : (Rock -> Rock) -> Fragment
 transformFragment func = 
       F (T func) 
 
-predFragment : (Rock -> Bool) -> Fragment
-predFragment func =
-    F (P func)
-
 toRedFunc : Rock -> Rock
 toRedFunc rock = {rock | color <- red}
 
 toBlueFunc : Rock -> Rock
 toBlueFunc rock = {rock | color <- blue}
 
-onlyRedFunc : Rock -> Bool
-onlyRedFunc rock = rock.color == red
-
-onlyBlueFunc : Rock -> Bool
-onlyBlueFunc rock = rock.color == blue
+toSolid : Bool -> Rock -> Rock
+toSolid solid rock = {rock | solid <- solid}
 
 
 emptyTransformBlock : (Rock -> Rock) -> BlockTemplate
@@ -100,6 +98,22 @@ emptyTransformBlock func =
                 , exp = fragment
                 , forms = forms}
             )
+
+
+predFragment : (Rock -> Bool) -> Fragment
+predFragment func =
+    F (P func)
+
+
+onlyRedFunc : Rock -> Bool
+onlyRedFunc rock = rock.color == red
+
+onlyBlueFunc : Rock -> Bool
+onlyBlueFunc rock = rock.color == blue
+
+
+
+
 
 emptyPredBlock :  (Rock -> Bool) -> BlockTemplate
 emptyPredBlock func =

@@ -215,7 +215,7 @@ viewVRocks rocks id xShift =
 
 newRock : Rock -> Int -> Int -> Int -> Float ->  Form
 newRock rock i rockWidth rockListWidth scale = viewRock rock scale
-                        |> moveX (toFloat ((i * rockWidth) -  rockListWidth//2 + ( rockWidth)//2) + 5)
+                        |> moveX (toFloat ((i * (rockWidth ) ) -  rockListWidth//2 + ( rockWidth)//2) + 5)
 
 
 
@@ -265,7 +265,7 @@ rockShape : Rock -> Float -> Shape
 rockShape rock scale =
   if| rock.value == 0 -> circle (10.0 * scale)
     | rock.value == 1 -> rect 3.0 (26.0 * scale)
-    | rock.value == 2 -> ngon rock.value (13.0 * scale)
+    | rock.value == 2 -> ngon rock.value (12.0 * scale)
     | otherwise -> ngon rock.value (13.0 * scale) 
 
 

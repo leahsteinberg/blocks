@@ -25,7 +25,7 @@ type alias Rock = {value: Int
                     , color: Color}
 
 
-type Func  = P Pred | T Transform | A Accum 
+type Func  = P Pred | T Transform | A Accum Rock
 
 type alias Pred = (Rock -> Bool)
 

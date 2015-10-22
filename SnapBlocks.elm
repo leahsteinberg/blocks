@@ -93,6 +93,7 @@ typeCheckFunc hof func =
   case (hof, func) of
     (Filter _ _, P pred) -> True
     (Map _ _, T transform) -> True
+    (Fold _ _, A accum r) -> True
     _ -> False
 
 
@@ -128,6 +129,8 @@ addFuncHof hof func =
       case hof of 
         Filter mFunc mRocks -> Filter (possiblyAdd mFunc func) mRocks
         Map mFunc mRocks -> Map (possiblyAdd mFunc func) mRocks
+        Fold mFunc mRocks -> Fold (possiblyAdd mFunc func) mRocks
+
 
 
 checkFuncCollisionsExp : ((Int, Int), (Int, Int)) -> Int -> Func -> Exp -> Block -> Maybe Exp

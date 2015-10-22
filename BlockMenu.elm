@@ -8,7 +8,7 @@ import Graphics.Input exposing (customButton)
 import Signal exposing (message)
 
 import Model exposing (..)
-import ViewFragment exposing (fragmentToForms)
+import ViewFragment exposing (fragmentToForms, genericRock)
 import Constants exposing (..)
 import SignalProcessing exposing (..)
 import Debug
@@ -65,7 +65,11 @@ predMenuData =   [(emptyPredBlock (onlyColor rRed), -3, predColor)
                 , (emptyPredBlock (onlySolid True), -6, predColor)
                 , (emptyPredBlock (onlySolid False), -7, predColor)]
 
-menuButtons width = makeMenuButtons width ++ makeFuncButtons width predMenuData ++ makeFuncButtons width transformMenuData
+accumMenuData : List (BlockTemplate, Int, Color)
+accumMenuData = [(emptyAccumBlock avgColor, -8, accumColor)]
+
+menuButtons width = makeMenuButtons width ++ makeFuncButtons width predMenuData ++ makeFuncButtons width transformMenuData ++ makeFuncButtons width accumMenuData
+
 
 makeMenuButtons : Int -> List Form
 makeMenuButtons width = List.map (\(blockTemp, str, col, i) -> makeMenuButtonCustom (blockTemp str col) str col i width) menuData
@@ -116,18 +120,13 @@ predFragment : (Rock -> Bool) -> Fragment
 predFragment func =
     F (P func)
 
+accumFragment : (Rock -> Rock -> Rock) -> Fragment
+accumFragment func =
+    F (A func genericRock)
+
 
 onlyColor : Color -> Rock -> Bool
 onlyColor col rock = rock.color == col
-
---onlyRedFunc : Rock -> Bool
---onlyRedFunc rock = rock.color == rRed
-
---onlyBlueFunc : Rock -> Bool
---onlyBlueFunc rock = rock.color == rBlue
-
---onlyGreenFunc : Rock -> Bool
---onlyGreenFunc rock = rock.color
 
 onlySolid : Bool -> Rock -> Bool
 onlySolid yes rock = rock.solid == yes 
@@ -150,6 +149,38 @@ emptyPredBlock func =
             )
 
 
+
+avgColor : Rock -> Rock -> Rock
+avgColor elRock accumRock =
+  let
+      count = (accumRock.value + 1) % 7
+      elColors = toRgb elRock.color
+      accColors = toRgb accumRock.color
+      rUnRounded =  ((elColors.red // count) + accColors.red) 
+      gUnRounded = ((elColors.green //count )+ accColors.green) 
+      bUnRounded = ((elColors.blue //count )+ accColors.blue)  
+      r = if rUnRounded > 255 then 255 else rUnRounded
+      g = if gUnRounded > 255 then 255 else gUnRounded
+      b = if bUnRounded > 255 then 255 else bUnRounded
+      newColor = rgb r g b
+  in
+      {accumRock | color <- newColor, value <- count}
+
+
+emptyAccumBlock :  (Rock -> Rock -> Rock) -> BlockTemplate
+emptyAccumBlock func =
+  (\id ->
+    let
+        fragment = accumFragment func
+        (els, forms)  = fragmentToForms fragment id
+    in
+                  {id= id
+                , ele = els
+                , selected = False
+                , pos= (-((id *30)% 500) , (id*10)%500)
+                , exp = fragment
+                , forms = forms}
+            )
 
 -- - - - - - - - - - H O F - B L O C K S  - - - - - - - - - -      
 
@@ -201,13 +232,12 @@ emptyFoldBlock str col =
 dummyRockList : List Rock
 dummyRockList = [
   {value= 0, solid= True, color = rRed}
-  , {value = 1, solid = False, color = rBlue}
-  , {value = 2, solid = False, color = rGreen}
+  , {value = 1, solid = False, color = rRed}
+  , {value = 2, solid = False, color = rBlue}
   , {value = 3, solid = False, color = rRed}
   , {value = 4, solid = False, color = rGreen}
-  , {value = 0, solid = True, color = rBlue}
-  , {value = 6, solid = False, color = rRed}
-  , {value = 2, solid = False, color = rGreen}]
+  , {value = 5, solid = True, color = rRed}
+  , {value = 6, solid = False, color = rRed}]
 
 
 emptyRocksBlock : String -> Color -> BlockTemplate

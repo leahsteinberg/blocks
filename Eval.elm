@@ -43,12 +43,21 @@ step hof rocks =
         --(Map Nothing _, _) -> R rocks
         --(Filter Nothing _, _) -> R rocks
         (Filter _ processedRocks, []) -> R processedRocks
+
         (Map _ processedRocks, []) -> R processedRocks
+
         (Map (Just (T transform)) processedRocks, hd::tl) -> 
             C (Map (Just (T transform)) (processedRocks ++ [(transform hd)])) (R tl)
+
         (Filter (Just (P pred)) processedRocks, hd::tl) -> 
             let updatedRocks = if (Debug.watch "pred" (pred hd)) then processedRocks ++ [hd] else processedRocks in
             C (Filter (Just (P pred)) (updatedRocks)) (R tl)
+
+        (Fold (Just (A accum accRock)) processedRocks, hd::tl) -> 
+            let newAccumRock = accum hd accRock in
+            C (Fold (Just (A accum newAccumRock) )[]) (R tl)
+        (Fold (Just (A accum accRock)) processedRocks, []) -> R [accRock]
+            
         _ -> R rocks
     -- unpack expression
     -- find redex

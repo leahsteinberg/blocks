@@ -59,6 +59,13 @@ viewHof hof id xShift =
 
         hofForms col = endForms col xShift
 
+        packageFormsWithoutRocks mFunc str col col2 =
+            let
+                funcAttachments = viewMaybeFunc mFunc id xShift col2
+            in 
+                (hofBox str col :: fst funcAttachments, hofForms col ++ snd funcAttachments)
+
+
         packageForms mFunc vRocks str col col2 =
             let 
                 vRockAttachment = [viewVRocks vRocks id xShift]
@@ -72,7 +79,7 @@ viewHof hof id xShift =
 
             Map mFunc mVRocks -> packageForms mFunc mVRocks "map" mapColor transformColor
 
-            Fold mFunc mVRocks -> packageForms mFunc mVRocks "fold" foldColor accumColor
+            Fold mFunc mVRocks -> packageFormsWithoutRocks mFunc "fold" foldColor accumColor
 
 
 viewMaybeFunc : Maybe Func -> ID -> Int -> Color -> (List Form, List Form)
@@ -109,7 +116,7 @@ viewFunc func id xShift =
         case func of
           T transform -> viewTransform transform scale
           P pred -> viewPred pred scale
-          A accum -> viewAccum accum scale
+          A accum accRock -> viewAccum accum accRock scale
 
 
       makeFunc = (funcElement genericRock)
@@ -158,13 +165,13 @@ viewTransform func scale rock =
       collage (rockWidth+50) (rockHeight+15) [backgroundCircle, (viewRock (func rock) scale)]
 
 
-viewAccum : (Rock -> Rock -> Rock) -> Float -> Rock -> Element
-viewAccum accum scale rock =
+viewAccum : (Rock -> Rock -> Rock) -> Rock -> Float -> Rock -> Element
+viewAccum accum accRock scale rock =
     let
         backgroundCircle = circle (rockWidth * scale)
                                 |> outlined (dashedLineStyle accumColor)
     in
-        collage (rockWidth + 50) (rockHeight + 15) [backgroundCircle, (viewRock rock scale)]
+        collage (rockWidth + 50) (rockHeight + 15) [backgroundCircle, (viewRock accRock scale)]
 
 
 -- - - - - - - - - - - - E N D S - - - - - - - - - - - - - - - - - -
@@ -268,14 +275,14 @@ viewRock rock scale =
                 else outlined (solid rock.color)
     in
         if rock.value == 2 then xForm  scale rock.color rock.solid else 
-            if rock.value %6 ==3 then rotate 100 (paint shape) else paint shape
+            if rock.value % 7 ==3 then rotate 100 (paint shape) else paint shape
 
 
 
 rockShape : Rock -> Float -> Shape
 rockShape rock scale =
     let 
-        value = rock.value % 6
+        value = rock.value % 7
     in
         if  | value == 0 -> circle (10.0 * scale)
             | value == 1 -> rect 3.0 (26.0 * scale)

@@ -1,5 +1,5 @@
 module Eval where
-
+import Debug
 import Dict
 import Model exposing (..)
 import ViewFragment exposing (fragmentToForms)
@@ -47,9 +47,12 @@ step hof rocks =
         (Map (Just (T transform)) processedRocks, hd::tl) -> 
             C (Map (Just (T transform)) (processedRocks ++ [(transform hd)])) (R tl)
         (Filter (Just (P pred)) processedRocks, hd::tl) -> 
-            let updatedRocks = if pred hd then processedRocks ++ [hd] else processedRocks in
+            let updatedRocks = if (Debug.watch "pred" (pred hd)) then processedRocks ++ [hd] else processedRocks in
             C (Filter (Just (P pred)) (updatedRocks)) (R tl)
         _ -> R rocks
     -- unpack expression
     -- find redex
     -- change it and return
+
+
+

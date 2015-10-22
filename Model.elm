@@ -16,7 +16,7 @@ type Fragment = E Exp | F Func | H HOF
 type Exp = C HOF Exp
             | R Rocks
 
-type HOF = Filter (Maybe Func) Rocks | Map (Maybe Func) Rocks
+type HOF = Filter (Maybe Func) Rocks | Map (Maybe Func) Rocks | Fold (Maybe Func) Rocks
 
 type alias Rocks = List Rock
 
@@ -31,7 +31,7 @@ type alias Pred = (Rock -> Bool)
 
 type alias Transform = (Rock -> Rock)
 
-type alias Accum = (Rock -> Rocks -> Rocks)
+type alias Accum = (Rock -> Rock -> Rock)
 
 type alias Block = {id: ID
                     , ele: List Form

@@ -23,14 +23,14 @@ makeMenuButtonCustom blockTemplate str col i width =
       customButton (Signal.message blockTransform.address (Add blockTemplate))
           buttonBackground buttonBackground buttonBackground
             |> toForm
-            |> move (xValue, 300 / 10 * (toFloat i) )
+            |> move (xValue, 300 / 10 * (toFloat i) + 10 )
 
 
 makeFuncButton : BlockTemplate ->  Int -> Int -> Color ->Form
 makeFuncButton blockTemplate i width col =
     let
         xValue =  -((toFloat width)/2 - 30)
-        yValue = 300 / 10 * (toFloat i)
+        yValue = 300 / 10 * (toFloat i) + 10
         fakeFuncBlock = blockTemplate -1
         fakeFuncFrag = fakeFuncBlock.exp
         buttonBackgroundForms = fst (fragmentToForms  fakeFuncFrag -1)
@@ -44,23 +44,26 @@ makeFuncButton blockTemplate i width col =
 
 
 menuData : List ((String -> Color -> BlockTemplate), String, Color, Int)
-menuData = [(emptyFilterBlock, "filter", filterColor, 0)
-            , (emptyMapBlock, "map", mapColor, 7)
-            , (emptyRocksBlock, "rocks", rocksColor, 8)]
+menuData = [(emptyFilterBlock, "filter", filterColor, -1)
+            , (emptyMapBlock, "map", mapColor, 6)
+            , (emptyRocksBlock, "rocks", rocksColor, 7)
+            , (emptyFoldBlock, "fold", foldColor, 8)]
 
 transformMenuData : List (BlockTemplate, Int, Color)
-transformMenuData = [(emptyTransformBlock toRedFunc, 6, transformColor)
-                , (emptyTransformBlock toBlueFunc, 5, transformColor)
-                , (emptyTransformBlock (toSolid True), 4, transformColor)
-                , (emptyTransformBlock (toSolid False), 3, transformColor)
-                , (emptyTransformBlock (addValueToRock 2), 2, transformColor)]
+transformMenuData = [(emptyTransformBlock (toColor rRed), 5, transformColor)
+                , (emptyTransformBlock (toColor rBlue), 4, transformColor)
+                , (emptyTransformBlock (toColor rGreen), 3, transformColor)
+                , (emptyTransformBlock (toSolid True), 2, transformColor)
+                , (emptyTransformBlock (toSolid False), 1, transformColor)
+                , (emptyTransformBlock (addValueToRock 2), 0, transformColor)]
 
 
 predMenuData : List (BlockTemplate, Int, Color)
-predMenuData =   [(emptyPredBlock onlyRedFunc, -1, predColor)
-                , (emptyPredBlock onlyBlueFunc, -2, predColor)
-                , (emptyPredBlock (onlySolid True), -3, predColor)
-                , (emptyPredBlock (onlySolid False), -4, predColor)]
+predMenuData =   [(emptyPredBlock (onlyColor rRed), -3, predColor)
+                , (emptyPredBlock (onlyColor rBlue), -4, predColor)
+                , (emptyPredBlock (onlyColor rGreen), -5, predColor)
+                , (emptyPredBlock (onlySolid True), -6, predColor)
+                , (emptyPredBlock (onlySolid False), -7, predColor)]
 
 menuButtons width = makeMenuButtons width ++ makeFuncButtons width predMenuData ++ makeFuncButtons width transformMenuData
 
@@ -77,11 +80,14 @@ transformFragment : (Rock -> Rock) -> Fragment
 transformFragment func = 
       F (T func) 
 
-toRedFunc : Rock -> Rock
-toRedFunc rock = {rock | color <- red}
+toColor : Color -> Rock -> Rock
+toColor col rock = {rock | color <- col}
 
-toBlueFunc : Rock -> Rock
-toBlueFunc rock = {rock | color <- blue}
+--toRedFunc : Rock -> Rock
+--toRedFunc rock = {rock | color <- rRed}
+
+--toBlueFunc : Rock -> Rock
+--toBlueFunc rock = {rock | color <- rBlue}
 
 toSolid : Bool -> Rock -> Rock
 toSolid solid rock = {rock | solid <- solid}
@@ -100,7 +106,7 @@ emptyTransformBlock func =
                   {id= id
                 , ele = els
                 , selected = False
-                , pos= (-(id *30), id*10)
+                , pos= (-((id *30)%500), (id*10)%500)
                 , exp = fragment
                 , forms = forms}
             )
@@ -111,14 +117,20 @@ predFragment func =
     F (P func)
 
 
-onlyRedFunc : Rock -> Bool
-onlyRedFunc rock = rock.color == red
+onlyColor : Color -> Rock -> Bool
+onlyColor col rock = rock.color == col
 
-onlyBlueFunc : Rock -> Bool
-onlyBlueFunc rock = rock.color == blue
+--onlyRedFunc : Rock -> Bool
+--onlyRedFunc rock = rock.color == rRed
+
+--onlyBlueFunc : Rock -> Bool
+--onlyBlueFunc rock = rock.color == rBlue
+
+--onlyGreenFunc : Rock -> Bool
+--onlyGreenFunc rock = rock.color
 
 onlySolid : Bool -> Rock -> Bool
-onlySolid yes rock = rock.solid == yes && rock.color == black
+onlySolid yes rock = rock.solid == yes 
 
 
 
@@ -132,7 +144,7 @@ emptyPredBlock func =
                   {id= id
                 , ele = els
                 , selected = False
-                , pos= (-(id *30), id*10)
+                , pos= (-((id *30)% 500) , (id*10)%500)
                 , exp = fragment
                 , forms = forms}
             )
@@ -169,21 +181,33 @@ emptyMapBlock str col =
                     , exp = fragment
                     , forms = forms})
 
+emptyFoldBlock : String -> Color -> BlockTemplate
+emptyFoldBlock str col = 
+    (\id -> 
+        let 
+                fragment = (H (Fold Nothing []))
+                (els, forms) = fragmentToForms fragment id
+        in 
+                {id = id
+                    , selected = False
+                    , pos = (-200, -200)
+                    , ele = els
+                    , exp = fragment
+                    , forms = forms})
 
 
 
 -- - - - - - - - - - R O C K S - B L O C K S  - - - - - - - - - -   
 dummyRockList : List Rock
 dummyRockList = [
-  {value= 0, solid= True, color = red}
-  , {value = 1, solid = False, color = blue}
-  , {value = 2, solid = False, color = purple}
-  , {value = 3, solid = False, color = red}
-  , {value = 4, solid = False, color = purple}
-  , {value = 5, solid = True, color = blue}
-  , {value = 6, solid = False, color = red}
-  , {value = 7, solid = False, color = purple}
-  , {value = 8, solid = True, color = red}]
+  {value= 0, solid= True, color = rRed}
+  , {value = 1, solid = False, color = rBlue}
+  , {value = 2, solid = False, color = rGreen}
+  , {value = 3, solid = False, color = rRed}
+  , {value = 4, solid = False, color = rGreen}
+  , {value = 0, solid = True, color = rBlue}
+  , {value = 6, solid = False, color = rRed}
+  , {value = 2, solid = False, color = rGreen}]
 
 
 emptyRocksBlock : String -> Color -> BlockTemplate
@@ -196,7 +220,7 @@ emptyRocksBlock  str col =
               {id= id
                 , ele = els
                 , selected = False
-                , pos= (-(id *20), id*10)
+                , pos= (-((id *20)%500), (id*10)%500)
                 , exp = fragment
                 , forms = forms}
                 )

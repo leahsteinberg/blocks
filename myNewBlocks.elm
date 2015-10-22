@@ -91,10 +91,10 @@ dummyRockList = [
   , {value = 2, solid = False, color = purple}
   , {value = 3, solid = False, color = red}
   , {value = 4, solid = False, color = purple}
-  , {value = 5, solid = True, color = blue}
-  , {value = 6, solid = False, color = red}
-  , {value = 7, solid = False, color = purple}
-  , {value = 8, solid = True, color = red}]
+  , {value = 0, solid = True, color = blue}
+  , {value = 1, solid = False, color = red}
+  , {value = 2, solid = False, color = purple}
+  , {value = 3, solid = True, color = red}]
 
 --main = collage 700 700 (viewRocks (Just {pos= (-300, 300), rockList= dummyRockList} ))
 

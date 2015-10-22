@@ -4,7 +4,7 @@ import Graphics.Element exposing (leftAligned, centered, color, size, Element, c
 import Text exposing (fromString)
 import Graphics.Input exposing (customButton)
 import Color exposing (Color, white, red, black)
-import Graphics.Collage exposing (Form, moveX, move, toForm, rect, outlined, polygon, filled, collage, ngon, circle, solid, Shape, segment, traced, group, dashed)
+import Graphics.Collage exposing (Form, moveX, move, toForm, rect, outlined, polygon, filled, collage, ngon, circle, rotate, solid, Shape, segment, traced, group, dashed)
 import Model exposing (..)
 import Constants exposing (..)
 import Drag exposing (makeHoverable)
@@ -72,6 +72,8 @@ viewHof hof id xShift =
 
             Map mFunc mVRocks -> packageForms mFunc mVRocks "map" mapColor transformColor
 
+            Fold mFunc mVRocks -> packageForms mFunc mVRocks "fold" foldColor accumColor
+
 
 viewMaybeFunc : Maybe Func -> ID -> Int -> Color -> (List Form, List Form)
 viewMaybeFunc mFunc id xShift col =
@@ -107,6 +109,7 @@ viewFunc func id xShift =
         case func of
           T transform -> viewTransform transform scale
           P pred -> viewPred pred scale
+          A accum -> viewAccum accum scale
 
 
       makeFunc = (funcElement genericRock)
@@ -146,7 +149,7 @@ viewPred func scale rock =
 
 
 viewTransform : (Rock -> Rock) -> Float -> Rock -> Element
-viewTransform func scale rock=
+viewTransform func scale rock =
   let 
       backgroundCircle = circle (rockWidth*scale)
                       |> outlined (dashedLineStyle transformColor)
@@ -155,7 +158,13 @@ viewTransform func scale rock=
       collage (rockWidth+50) (rockHeight+15) [backgroundCircle, (viewRock (func rock) scale)]
 
 
-
+viewAccum : (Rock -> Rock -> Rock) -> Float -> Rock -> Element
+viewAccum accum scale rock =
+    let
+        backgroundCircle = circle (rockWidth * scale)
+                                |> outlined (dashedLineStyle accumColor)
+    in
+        collage (rockWidth + 50) (rockHeight + 15) [backgroundCircle, (viewRock rock scale)]
 
 
 -- - - - - - - - - - - - E N D S - - - - - - - - - - - - - - - - - -
@@ -216,7 +225,7 @@ viewVRocks rocks id xShift =
 
 newRock : Rock -> Int -> Int -> Int -> Float ->  Form
 newRock rock i rockWidth rockListWidth scale = viewRock rock scale
-                        |> moveX (toFloat ((i * (rockWidth ) ) -  rockListWidth//2 + ( rockWidth)//2) + 5)
+                        |> moveX (toFloat ((i * (rockWidth + (4* (floor scale)) ) -  rockListWidth//2 + ( rockWidth)//2) + 5))
 
 
 
@@ -259,15 +268,20 @@ viewRock rock scale =
                 else outlined (solid rock.color)
     in
         if rock.value == 2 then xForm  scale rock.color rock.solid else 
-            paint shape
+            if rock.value %6 ==3 then rotate 100 (paint shape) else paint shape
+
 
 
 rockShape : Rock -> Float -> Shape
 rockShape rock scale =
-  if| rock.value == 0 -> circle (10.0 * scale)
-    | rock.value == 1 -> rect 3.0 (26.0 * scale)
-    | rock.value == 2 -> ngon rock.value (12.0 * scale)
-    | otherwise -> ngon rock.value (13.0 * scale) 
+    let 
+        value = rock.value % 6
+    in
+        if  | value == 0 -> circle (10.0 * scale)
+            | value == 1 -> rect 3.0 (26.0 * scale)
+            | value == 2 -> ngon value (12.0 * scale)
+            | value == 3 -> ngon value (13.0 * scale)
+            | otherwise -> ngon value (13.0 * scale)
 
 
 genericRock : Rock
